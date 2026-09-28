@@ -12,7 +12,7 @@ export default async function PlayPage({
   const klass = await findClassByCode(code);
   if (!klass) notFound();
 
-  const student = await currentStudent();
+  const student = await currentStudent(klass.id);
   if (!student || student.classId !== klass.id) redirect(`/go/${code}`);
 
   // Scoped to this student's own target. The payload carries no answers.

@@ -29,8 +29,20 @@ a free ungated PDF, related sheets, and an answer key behind a free teacher
 account. Its content is a byproduct of the same generator surface 2 uses —
 there is no second content pipeline.
 
-Not built yet: practice (surface 3), and everything in the brief's
-out-of-scope list.
+**The content library.** Spanish 1–6, AP and college: worksheets paired with
+answer keys, 12+ auto-graded quizzes and 3 tests per level, reading
+comprehension with writing tasks, and hangman and word-search games. All of it is
+built deterministically from `src/lib/content/` (vocabulary, grammar, readings,
+and the conjugator for verb forms), so nothing is stored and grading happens on
+the server.
+
+**The course workspace.** A Canvas-style shell over surface 2: teachers get a
+dashboard, courses, calendar and to-do list, and each course has announcements,
+assignments (anything from the library, or a written task), grades, people and
+the mastery grid. Students join with the class code, their name and a PIN they
+choose, and get the matching student portal.
+
+Not built yet: everything in the brief's out-of-scope list.
 
 ## Setup
 

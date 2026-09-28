@@ -185,3 +185,36 @@ function correctAnswerText(item: {
   }
   return Array.isArray(item.answer) ? item.answer.join(', ') : String(item.answer);
 }
+
+/**
+ * A student adds themself to a class with the join code: first name, last
+ * initial, and a PIN they choose so nobody else can open their work. Like every
+ * roster entry this is not an account, and it is created under the class's
+ * teacher, who can see and remove it from People.
+ */
+export async function selfJoin(args: {
+  classId: string; firstName: string; lastInitial: string | null; pinHash: string;
+}): Promise<string> {
+  return tx(async (c) => {
+    const { rows: [klass] } = await c.query(
+      `SELECT teacher_account_id FROM class WHERE id = $1 AND archived_at IS NULL`, [args.classId]);
+    if (!klass) throw new Error('That class is not open.');
+
+    const { rows: clash } = await c.query(
+      `SELECT 1 FROM roster_entry r JOIN enrollment e ON e.roster_entry_id = r.id
+        WHERE e.class_id = $1 AND e.removed_at IS NULL AND r.deleted_at IS NULL
+          AND lower(r.first_name) = lower($2)
+          AND coalesce(lower(r.last_initial), '') = coalesce(lower($3), '')`,
+      [args.classId, args.firstName, args.lastInitial]);
+    if (clash.length) throw new Error('Someone in this class already has that name. Pick it from the list, or add your last initial.');
+
+    // Age band defaults to the more protective setting: no account can ever
+    // be attached to this entry.
+    const { rows: [r] } = await c.query(
+      `INSERT INTO roster_entry (teacher_account_id, first_name, last_initial, age_band, access_pin_hash)
+       VALUES ($1,$2,$3,'under_13',$4) RETURNING id`,
+      [klass.teacher_account_id, args.firstName, args.lastInitial, args.pinHash]);
+    await c.query(`INSERT INTO enrollment (class_id, roster_entry_id) VALUES ($1,$2)`, [args.classId, r.id]);
+    return r.id as string;
+  });
+}

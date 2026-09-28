@@ -72,35 +72,61 @@ export async function currentAccountId(): Promise<string | null> {
 // ---------------------------------------------------------------------------
 
 const STUDENT_COOKIE = 'pluma_student';
-const STUDENT_MAX_AGE = 60 * 60 * 6;   // a school day, not a fortnight
+const STUDENT_MAX_AGE = 60 * 60 * 12;   // a school day, not a fortnight
+const MAX_GRANTS = 8;
 
-export async function setStudentCookie(rosterEntryId: string, classId: string): Promise<void> {
+export type StudentGrant = { rosterEntryId: string; classId: string };
+
+/**
+ * One signed cookie can hold a grant for each class a student has joined on
+ * this device, so their dashboard can list every course. Each grant still
+ * names exactly one roster entry in exactly one class.
+ */
+export async function studentGrants(): Promise<StudentGrant[]> {
+  const token = (await cookies()).get(STUDENT_COOKIE)?.value;
+  if (!token) return [];
+  const [payload, mac] = token.split('.');
+  if (!payload || !mac) return [];
+  const expected = Buffer.from(sign(payload));
+  const actual = Buffer.from(mac);
+  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return [];
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    if (typeof data.exp !== 'number' || data.exp < Math.floor(Date.now() / 1000)) return [];
+    // older single-grant cookies carried the grant at the top level
+    const grants: unknown[] = Array.isArray(data.grants) ? data.grants : [data];
+    return grants.filter((g): g is StudentGrant =>
+      !!g && typeof (g as StudentGrant).rosterEntryId === 'string' && typeof (g as StudentGrant).classId === 'string')
+      .map((g) => ({ rosterEntryId: g.rosterEntryId, classId: g.classId }));
+  } catch {
+    return [];
+  }
+}
+
+async function writeGrants(grants: StudentGrant[]): Promise<void> {
+  const jar = await cookies();
+  if (grants.length === 0) { jar.delete(STUDENT_COOKIE); return; }
   const exp = Math.floor(Date.now() / 1000) + STUDENT_MAX_AGE;
-  const payload = Buffer.from(JSON.stringify({ rosterEntryId, classId, exp })).toString('base64url');
-  (await cookies()).set(STUDENT_COOKIE, `${payload}.${sign(payload)}`, {
+  const payload = Buffer.from(JSON.stringify({ grants: grants.slice(0, MAX_GRANTS), exp })).toString('base64url');
+  jar.set(STUDENT_COOKIE, `${payload}.${sign(payload)}`, {
     httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production',
     path: '/', maxAge: STUDENT_MAX_AGE,
   });
 }
 
-export async function currentStudent(): Promise<{ rosterEntryId: string; classId: string } | null> {
-  const token = (await cookies()).get(STUDENT_COOKIE)?.value;
-  if (!token) return null;
-  const [payload, mac] = token.split('.');
-  if (!payload || !mac) return null;
-  const expected = Buffer.from(sign(payload));
-  const actual = Buffer.from(mac);
-  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return null;
-  try {
-    const { rosterEntryId, classId, exp } = JSON.parse(Buffer.from(payload, 'base64url').toString());
-    if (typeof rosterEntryId !== 'string' || typeof classId !== 'string') return null;
-    if (exp < Math.floor(Date.now() / 1000)) return null;
-    return { rosterEntryId, classId };
-  } catch {
-    return null;
-  }
+/** Adds (or refreshes) the grant for this class; one roster entry per class. */
+export async function setStudentCookie(rosterEntryId: string, classId: string): Promise<void> {
+  const others = (await studentGrants()).filter((g) => g.classId !== classId);
+  await writeGrants([{ rosterEntryId, classId }, ...others]);
 }
 
-export async function clearStudentCookie(): Promise<void> {
-  (await cookies()).delete(STUDENT_COOKIE);
+/** The grant for a class, or with no class given, the most recently used one. */
+export async function currentStudent(classId?: string): Promise<StudentGrant | null> {
+  const grants = await studentGrants();
+  return (classId ? grants.find((g) => g.classId === classId) : grants[0]) ?? null;
+}
+
+/** Leave one class on this device, or all of them. */
+export async function clearStudentCookie(classId?: string): Promise<void> {
+  await writeGrants(classId ? (await studentGrants()).filter((g) => g.classId !== classId) : []);
 }

@@ -3,19 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireTeacher, requireOwnedClass } from '@/lib/auth/require';
-import { createClass, addRosterEntry, setChipConfirmed, setRosterPin } from '@/lib/classroom/teacher';
+import { addRosterEntry, setChipConfirmed, setRosterPin } from '@/lib/classroom/teacher';
 import { createAssignment } from '@/lib/classroom/assignment';
 import { hashPin } from '@/lib/auth/password';
 import type { Difficulty, ItemType } from '@/lib/generation/params';
-
-export async function createClassAction(_prev: string | null, form: FormData): Promise<string | null> {
-  const teacherId = await requireTeacher();
-  const name = String(form.get('name') ?? '').trim();
-  const course = String(form.get('course') ?? 'spanish-2');
-  if (!name) return 'Give the class a name.';
-  const id = await createClass(teacherId, name, course);
-  redirect(`/teacher/${id}`);
-}
 
 export async function addStudentAction(_prev: string | null, form: FormData): Promise<string | null> {
   const teacherId = await requireTeacher();
@@ -37,20 +28,21 @@ export async function addStudentAction(_prev: string | null, form: FormData): Pr
     note: String(form.get('note') ?? '').trim() || null,
   });
 
-  revalidatePath(`/teacher/${classId}`);
+  revalidatePath(`/teacher/${classId}`, 'layout');
   return null;
 }
 
 export async function confirmChipAction(form: FormData): Promise<void> {
-  await requireTeacher();
-  await setChipConfirmed(String(form.get('paramId')), form.get('confirmed') === '1');
+  const teacherId = await requireTeacher();
+  await setChipConfirmed(teacherId, String(form.get('paramId')), form.get('confirmed') === '1');
   revalidatePath(String(form.get('path') ?? '/teacher'));
 }
 
 export async function setPinAction(form: FormData): Promise<void> {
-  await requireTeacher();
+  const teacherId = await requireTeacher();
   const pin = String(form.get('pin') ?? '').trim();
-  await setRosterPin(String(form.get('rosterEntryId')), pin ? await hashPin(pin) : null);
+  if (pin && !/^\d{4,6}$/.test(pin)) return;
+  await setRosterPin(teacherId, String(form.get('rosterEntryId')), pin ? await hashPin(pin) : null);
   revalidatePath(String(form.get('path') ?? '/teacher'));
 }
 

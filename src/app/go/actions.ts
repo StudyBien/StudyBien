@@ -1,9 +1,9 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { findClassByCode, pinHashFor, submitTarget } from '@/lib/classroom/student';
+import { findClassByCode, pinHashFor, submitTarget, selfJoin } from '@/lib/classroom/student';
 import { normaliseClassCode } from '@/lib/classroom/codes';
-import { verifyPin } from '@/lib/auth/password';
+import { verifyPin, hashPin } from '@/lib/auth/password';
 import { setStudentCookie, currentStudent, clearStudentCookie } from '@/lib/auth/session';
 import { query } from '@/lib/db/client';
 
@@ -36,11 +36,38 @@ export async function pickNameAction(_prev: string | null, form: FormData): Prom
   }
 
   await setStudentCookie(rosterEntryId, klass.id);
-  redirect(`/go/${code}/work`);
+  redirect(`/student/${klass.id}`);
+}
+
+/** A new student adds themself: name, last initial, and a PIN they choose. */
+export async function selfJoinAction(_prev: string | null, form: FormData): Promise<string | null> {
+  const code = normaliseClassCode(String(form.get('code') ?? ''));
+  const klass = await findClassByCode(code);
+  if (!klass) return 'That class is not open.';
+
+  const firstName = String(form.get('firstName') ?? '').trim().replace(/\s+/g, ' ');
+  const lastInitial = String(form.get('lastInitial') ?? '').trim().slice(0, 1).toUpperCase() || null;
+  const pin = String(form.get('pin') ?? '').trim();
+  const pin2 = String(form.get('pin2') ?? '').trim();
+  if (!firstName || firstName.length > 40) return 'Type your first name.';
+  if (!/^\p{L}[\p{L}' -]*$/u.test(firstName)) return 'Use letters only for your name.';
+  if (lastInitial && !/^\p{L}$/u.test(lastInitial)) return 'Your last initial should be one letter.';
+  if (!/^\d{4,6}$/.test(pin)) return 'Your PIN needs 4 to 6 numbers.';
+  if (pin !== pin2) return 'The two PINs don’t match.';
+
+  let rosterEntryId: string;
+  try {
+    rosterEntryId = await selfJoin({ classId: klass.id, firstName, lastInitial, pinHash: await hashPin(pin) });
+  } catch (e) {
+    return (e as Error).message;
+  }
+  await setStudentCookie(rosterEntryId, klass.id);
+  redirect(`/student/${klass.id}`);
 }
 
 export async function leaveAction(form: FormData): Promise<void> {
-  await clearStudentCookie();
+  const klass = await findClassByCode(String(form.get('code') ?? ''));
+  await clearStudentCookie(klass?.id);
   redirect(`/go/${String(form.get('code') ?? '')}`);
 }
 
@@ -53,10 +80,13 @@ export type SubmitState = {
 };
 
 export async function submitAction(_prev: SubmitState, form: FormData): Promise<SubmitState> {
-  const student = await currentStudent();
+  const targetId = String(form.get('targetId') ?? '');
+  const owner = await query<{ class_id: string }>(
+    `SELECT a.class_id FROM assignment_target t JOIN assignment a ON a.id = t.assignment_id WHERE t.id = $1`,
+    [targetId]);
+  const student = owner[0] ? await currentStudent(owner[0].class_id) : null;
   if (!student) return { done: false, error: 'Your session ended. Pick your name again.' };
 
-  const targetId = String(form.get('targetId') ?? '');
   const responses: Record<string, unknown> = {};
   for (const [key, value] of form.entries()) {
     if (!key.startsWith('r:')) continue;

@@ -75,7 +75,7 @@ async function main() {
   for (const name of ['Ben', 'Cruz']) {
     for (const chip of await listLearnerParams(ids[name])) {
       if (chip.key === 'difficulty_offset' || chip.key === 'max_items') {
-        await setChipConfirmed(chip.id, true);
+        await setChipConfirmed(teacher.id, chip.id, true);
       }
     }
   }

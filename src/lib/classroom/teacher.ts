@@ -108,11 +108,14 @@ export async function listLearnerParams(rosterEntryId: string): Promise<LearnerP
        FROM learner_param WHERE roster_entry_id = $1 ORDER BY key, value`, [rosterEntryId]);
 }
 
-export async function setChipConfirmed(paramId: string, confirmed: boolean): Promise<void> {
-  await query(`UPDATE learner_param SET confirmed_by_teacher = $2 WHERE id = $1`,
-    [paramId, confirmed]);
+export async function setChipConfirmed(teacherId: string, paramId: string, confirmed: boolean): Promise<void> {
+  await query(
+    `UPDATE learner_param lp SET confirmed_by_teacher = $3
+       FROM roster_entry r WHERE lp.id = $2 AND r.id = lp.roster_entry_id AND r.teacher_account_id = $1`,
+    [teacherId, paramId, confirmed]);
 }
 
-export async function setRosterPin(rosterEntryId: string, pinHash: string | null): Promise<void> {
-  await query(`UPDATE roster_entry SET access_pin_hash = $2 WHERE id = $1`, [rosterEntryId, pinHash]);
+export async function setRosterPin(teacherId: string, rosterEntryId: string, pinHash: string | null): Promise<void> {
+  await query(`UPDATE roster_entry SET access_pin_hash = $3 WHERE id = $2 AND teacher_account_id = $1`,
+    [teacherId, rosterEntryId, pinHash]);
 }

@@ -12,6 +12,11 @@ const COURSES = [
   { slug: 'spanish-1', name: 'Spanish 1', seq: 1, gradeLow: 7, gradeHigh: 12 },
   { slug: 'spanish-2', name: 'Spanish 2', seq: 2, gradeLow: 8, gradeHigh: 14 },
   { slug: 'spanish-3', name: 'Spanish 3', seq: 3, gradeLow: 9, gradeHigh: 16 },
+  { slug: 'spanish-4', name: 'Spanish 4', seq: 4, gradeLow: 10, gradeHigh: 16 },
+  { slug: 'spanish-5', name: 'Spanish 5', seq: 5, gradeLow: 11, gradeHigh: 16 },
+  { slug: 'spanish-6', name: 'Spanish 6', seq: 6, gradeLow: 11, gradeHigh: 16 },
+  { slug: 'ap-spanish', name: 'AP Spanish Language', seq: 7, gradeLow: 11, gradeHigh: 12 },
+  { slug: 'college-spanish', name: 'College Spanish', seq: 8, gradeLow: 13, gradeHigh: 16 },
 ];
 
 async function main() {

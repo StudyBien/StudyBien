@@ -9,25 +9,22 @@ import { StudyBienLogo } from './logo';
  */
 export function SiteNav() {
   return (
-    <nav className="sticky top-0 z-10 bg-paper border-b border-rule">
-      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center gap-4 px-5 py-3">
-        <Link href="/" className="mr-auto no-underline text-ink">
+    <nav className="no-print sticky top-0 z-20 border-b border-rule bg-paper">
+      <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
+        <Link href="/" className="mr-auto text-ink no-underline">
           <StudyBienLogo height={26} />
-        </Link>
-        <Link href="/worksheets" className="text-[15px] text-ink-soft no-underline hover:text-ink">
-          Worksheet library
-        </Link>
-        <Link href="/teacher" className="text-[15px] text-ink-soft no-underline hover:text-ink">
-          My classes
-        </Link>
-        <Link href="/go" className="text-[15px] text-ink-soft no-underline hover:text-ink">
-          I have a class code
         </Link>
         <Link
           href="/login"
-          className="rounded-lg bg-primary px-4 py-2.5 text-[15px] font-bold text-paper no-underline hover:bg-primary-hover"
+          className="rounded-lg px-3 py-2 text-[15px] font-bold text-ink no-underline hover:bg-paper-sunk hover:text-ink"
         >
-          Create free account
+          Sign up / Sign in
+        </Link>
+        <Link
+          href="/go"
+          className="rounded-lg bg-primary px-4 py-2.5 text-[15px] font-bold text-paper no-underline hover:bg-primary-hover hover:text-paper"
+        >
+          Join classroom as a student
         </Link>
       </div>
     </nav>
@@ -36,11 +33,11 @@ export function SiteNav() {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-rule">
+    <footer className="no-print border-t border-rule">
       <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-4 px-5 py-8
                       font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
         <span>StudyBien · free for every teacher</span>
-        <span>No ads. No paywall. No student accounts.</span>
+        <span>No ads. No paywall. Hecho con cariño.</span>
       </div>
     </footer>
   );
