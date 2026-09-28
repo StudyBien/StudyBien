@@ -18,7 +18,7 @@ import { generationHash, type GenerationParams } from '../src/lib/generation/par
 import { templateSupports } from '../src/lib/generation/template/index.ts';
 import { renderWorksheetHtml } from '../src/lib/render/worksheet.ts';
 import { htmlToPdf, closeBrowser } from '../src/lib/render/pdf.ts';
-import { put, exists } from '../src/lib/storage/index.ts';
+import { put, exists, describeStorage } from '../src/lib/storage/index.ts';
 import { VARIANTS, worksheetTitle, metaDescription, type Variant } from '../src/lib/library/variants.ts';
 import { publicSkillName } from '../src/lib/taxonomy/seed-spanish.ts';
 import { skillCode, pdfPageCount } from '../src/lib/library/codes.ts';
@@ -125,6 +125,7 @@ async function buildOne(t: Target, variant: Variant): Promise<'built' | 'skipped
 }
 
 async function main() {
+  console.log(`library storage: ${describeStorage()}`);
   const targets = await query<Target>(
     `SELECT su.id AS subject_id, su.slug AS subject_slug,
             co.id AS course_id, co.slug AS course_slug, co.name AS course_name,

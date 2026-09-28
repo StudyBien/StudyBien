@@ -30,6 +30,14 @@ function supabase(): { url: string; key: string } | undefined {
   return url && key ? { url: url.replace(/\/$/, ''), key } : undefined;
 }
 
+/** Which backend is in use, for build logs. Never includes the key. */
+export function describeStorage(): string {
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (supabase()) return `supabase storage at ${url}`;
+  return `local filesystem (SUPABASE_URL ${url ? 'set' : 'missing'}, `
+    + `SUPABASE_SERVICE_ROLE_KEY ${process.env.SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'missing'})`;
+}
+
 // ---------------------------------------------------------------- filesystem
 
 const PUBLIC_ROOT = join(process.cwd(), 'public', 'library');
