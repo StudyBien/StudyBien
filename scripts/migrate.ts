@@ -36,6 +36,16 @@ async function main() {
     }
   }
   console.log(ran === 0 ? 'up to date' : `${ran} migration(s) applied`);
+
+  // Supabase exposes every public table over its REST API to anyone holding
+  // the anon key. The app talks to Postgres directly as the table owner, which
+  // RLS does not restrict, so RLS with no policies closes that door and costs
+  // the app nothing. Re-run every time so a new table can't slip through.
+  await query(`DO $$ DECLARE t text; BEGIN
+    FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity LOOP
+      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
+    END LOOP;
+  END $$`);
   await close();
 }
 

@@ -13,17 +13,23 @@ import { chromium, type Browser } from 'playwright-core';
 
 let browser: Browser | undefined;
 
-function executablePath(): string | undefined {
-  return process.env.CHROMIUM_PATH || undefined;
+const BASE_ARGS = ['--no-sandbox', '--disable-dev-shm-usage', '--font-render-hinting=none'];
+
+/**
+ * CHROMIUM_PATH wins. Otherwise on Vercel (build or function) there is no
+ * system browser, so use the serverless build from @sparticuz/chromium.
+ */
+async function launchOptions(): Promise<{ executablePath?: string; args: string[] }> {
+  if (process.env.CHROMIUM_PATH) return { executablePath: process.env.CHROMIUM_PATH, args: BASE_ARGS };
+  if (process.env.VERCEL) {
+    const { default: serverless } = await import('@sparticuz/chromium');
+    return { executablePath: await serverless.executablePath(), args: [...serverless.args, ...BASE_ARGS] };
+  }
+  return { args: BASE_ARGS };
 }
 
 export async function getBrowser(): Promise<Browser> {
-  if (!browser) {
-    browser = await chromium.launch({
-      executablePath: executablePath(),
-      args: ['--no-sandbox', '--disable-dev-shm-usage', '--font-render-hinting=none'],
-    });
-  }
+  if (!browser) browser = await chromium.launch(await launchOptions());
   return browser;
 }
 
