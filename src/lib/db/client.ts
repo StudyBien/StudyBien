@@ -6,7 +6,13 @@ export function db(): pg.Pool {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) throw new Error('DATABASE_URL is not set');
-    pool = new pg.Pool({ connectionString, max: 10 });
+    // Hosted Postgres (Supabase) needs TLS; a local dev database does not.
+    const local = /@(localhost|127\.0\.0\.1)[:/]/.test(connectionString);
+    pool = new pg.Pool({
+      connectionString,
+      max: Number(process.env.DATABASE_POOL_MAX ?? 10),
+      ssl: local ? undefined : { rejectUnauthorized: false },
+    });
   }
   return pool;
 }
