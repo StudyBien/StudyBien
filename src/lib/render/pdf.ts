@@ -23,7 +23,10 @@ async function launchOptions(): Promise<{ executablePath?: string; args: string[
   if (process.env.CHROMIUM_PATH) return { executablePath: process.env.CHROMIUM_PATH, args: BASE_ARGS };
   if (process.env.VERCEL) {
     const { default: serverless } = await import('@sparticuz/chromium');
-    return { executablePath: await serverless.executablePath(), args: [...serverless.args, ...BASE_ARGS] };
+    // --single-process takes the whole browser down when its first page
+    // closes, and we reuse one browser for many renders.
+    const args = serverless.args.filter((a) => a !== '--single-process');
+    return { executablePath: await serverless.executablePath(), args: [...args, ...BASE_ARGS] };
   }
   return { args: BASE_ARGS };
 }
