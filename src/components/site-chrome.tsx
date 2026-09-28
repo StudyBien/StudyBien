@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PlumaLogo } from './logo';
+import { StudyBienLogo } from './logo';
 
 /**
  * Public chrome. Deliberately free of any session read: every page that wears
@@ -12,7 +12,7 @@ export function SiteNav() {
     <nav className="sticky top-0 z-10 bg-paper border-b border-rule">
       <div className="mx-auto flex max-w-[1180px] flex-wrap items-center gap-4 px-5 py-3">
         <Link href="/" className="mr-auto no-underline text-ink">
-          <PlumaLogo height={26} />
+          <StudyBienLogo height={26} />
         </Link>
         <Link href="/worksheets" className="text-[15px] text-ink-soft no-underline hover:text-ink">
           Worksheet library
@@ -39,7 +39,7 @@ export function SiteFooter() {
     <footer className="border-t border-rule">
       <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-4 px-5 py-8
                       font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">
-        <span>Pluma · free for every teacher</span>
+        <span>StudyBien · free for every teacher</span>
         <span>No ads. No paywall. No student accounts.</span>
       </div>
     </footer>

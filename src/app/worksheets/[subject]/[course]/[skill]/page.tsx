@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (sheets.length === 0) return {};
   const s = sheets[0];
   return {
-    title: `${s.skill_name} Worksheets — ${s.course_name} | Pluma`,
+    title: `${s.skill_name} Worksheets — ${s.course_name} | StudyBien`,
     description: `Free printable ${s.course_name} worksheets on ${s.skill_name.toLowerCase()}. `
       + `${sheets.length} PDFs at different levels, with answer keys.`,
   };

@@ -9,7 +9,7 @@ import { instructionsFor } from '@/lib/render/instructions';
 import { estimatedMinutes } from '@/lib/library/codes';
 import { PaperPreview, PaperThumb } from '@/components/paper-preview';
 import { SiteNav, SiteFooter, Pill, CheckLine } from '@/components/site-chrome';
-import { PlumaMark } from '@/components/logo';
+import { StudyBienMark } from '@/components/logo';
 import { publicSkillName } from '@/lib/taxonomy/seed-spanish';
 
 export const revalidate = 3600;
@@ -170,7 +170,7 @@ export default async function WorksheetPage({ params }: Props) {
 
           <div className="flex flex-col gap-3.5 rounded-lg border border-rule bg-paper-sunk p-5">
             <div className="flex items-center gap-2.5">
-              <PlumaMark height={25} tone="tangerine" />
+              <StudyBienMark height={25} tone="tangerine" />
               <div className="text-[19px] font-bold tracking-[-0.01em]">Make this for my class</div>
             </div>
             <p className="m-0 text-[16px] leading-[1.55] text-ink-soft">

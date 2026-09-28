@@ -1,12 +1,12 @@
 /**
- * The Pluma mark: a quill, drawn as a single path.
+ * The StudyBien mark: a quill, drawn as a single path.
  *
- * Taken verbatim from the Pluma Logo design file so the product and the brand
+ * Taken verbatim from the StudyBien Logo design file so the product and the brand
  * deck never drift. `tone` picks which of the palette's inks it is drawn in —
  * on paper (the printed worksheet masthead) it is drawn in ink, not primary,
  * because a photocopier turns azure into a mid grey.
  */
-export function PlumaMark({
+export function StudyBienMark({
   height = 28, tone = 'primary', className,
 }: { height?: number; tone?: 'primary' | 'ink' | 'tangerine' | 'paper'; className?: string }) {
   const fill = {
@@ -20,7 +20,7 @@ export function PlumaMark({
     <svg
       viewBox="0 0 100 200"
       role="img"
-      aria-label="Pluma"
+      aria-label="StudyBien"
       className={className}
       style={{ width: height * 0.52, height, display: 'block' }}
       fill={fill}
@@ -34,24 +34,24 @@ export function PlumaMark({
 }
 
 /** Mark plus wordmark. The lockup used in the nav and on printed mastheads. */
-export function PlumaLogo({
+export function StudyBienLogo({
   height = 28, tone = 'primary', wordmarkClassName = '',
 }: { height?: number; tone?: 'primary' | 'ink' | 'tangerine' | 'paper'; wordmarkClassName?: string }) {
   return (
     <span className="flex items-center gap-[9px]">
-      <PlumaMark height={height} tone={tone} />
+      <StudyBienMark height={height} tone={tone} />
       <span
         className={`font-bold tracking-[-0.02em] ${wordmarkClassName}`}
         style={{ fontSize: height * 0.75 }}
       >
-        Pluma
+        StudyBien
       </span>
     </span>
   );
 }
 
 /** The three dots from the foundations header: teal, marigold, tangerine. */
-export function PlumaDots({ size = 12 }: { size?: number }) {
+export function StudyBienDots({ size = 12 }: { size?: number }) {
   return (
     <span className="flex items-center gap-1" aria-hidden="true">
       {['var(--color-teal)', 'var(--color-marigold)', 'var(--color-tangerine-bright)'].map((c) => (

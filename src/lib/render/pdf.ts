@@ -44,7 +44,7 @@ export async function htmlToPdf(html: string): Promise<Buffer> {
       footerTemplate:
         '<div style="width:100%;font-size:8pt;font-family:Georgia,serif;color:#000;'
         + 'padding:0 0.65in;display:flex;justify-content:space-between;">'
-        + '<span>pluma</span><span class="pageNumber"></span></div>',
+        + '<span>StudyBien</span><span class="pageNumber"></span></div>',
       margin: { top: '0.6in', bottom: '0.8in', left: '0.65in', right: '0.65in' },
     });
   } finally {

@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /*
- * Pluma design tokens.
+ * StudyBien design tokens.
  *
- * Taken from the Pluma Foundations design file. Two things about this palette
+ * Taken from the StudyBien Foundations design file. Two things about this palette
  * are load-bearing rather than decorative:
  *
  *   Every colour is declared alongside the grayscale it becomes on a school
@@ -16,7 +16,7 @@
  */
 @theme {
   /* base — paper and ink */
-  --color-paper:       oklch(0.995 0.012 95);
+  --color-paper:       #ffffff;
   --color-paper-sunk:  oklch(0.955 0.048 92);
   --color-rule:        oklch(0.895 0.032 86);
   --color-ink:         oklch(0.23 0.032 56);

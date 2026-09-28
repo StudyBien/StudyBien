@@ -6,7 +6,7 @@ import { listCourses } from '@/lib/library/queries';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'Free Spanish Worksheets — Printable PDFs | Pluma',
+  title: 'Free Spanish Worksheets — Printable PDFs | StudyBien',
   description:
     'Thousands of free printable Spanish worksheets by course and skill. '
     + 'PDF download, no account needed. Answer keys free for teachers.',

@@ -26,8 +26,8 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Pluma — free worksheets, assignments and practice',
-    template: '%s | Pluma',
+    default: 'StudyBien — free worksheets, assignments and practice',
+    template: '%s | StudyBien',
   },
   description:
     'Free printable worksheets and a classroom that tells you what your students '

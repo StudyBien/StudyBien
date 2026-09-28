@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const match = (await listCourses()).find((c) => c.subject_slug === subject && c.course_slug === course);
   if (!match) return {};
   return {
-    title: `${match.course_name} Worksheets — Free Printable PDFs | Pluma`,
+    title: `${match.course_name} Worksheets — Free Printable PDFs | StudyBien`,
     description: `Free ${match.course_name} worksheets by topic. Printable PDFs, no account needed.`,
   };
 }

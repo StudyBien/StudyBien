@@ -1,5 +1,5 @@
 /**
- * The performance scale, from the Pluma Foundations design file.
+ * The performance scale, from the StudyBien Foundations design file.
  *
  * Each band carries its meaning three times over — lightness, glyph, number —
  * so the grid reads for someone with any dichromacy, on a projector at the back

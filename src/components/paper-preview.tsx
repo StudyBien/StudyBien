@@ -67,7 +67,7 @@ export function PaperPreview({ title, eyebrow, instructions, items, footerLeft, 
                style={{ width: '1.35cqw', height: '2.6cqw', display: 'block' }}>
             <path fillRule="evenodd" d={MARK_PATH} />
           </svg>
-          <div className="font-bold tracking-[-0.01em]" style={{ fontSize: '2.1cqw' }}>Pluma</div>
+          <div className="font-bold tracking-[-0.01em]" style={{ fontSize: '2.1cqw' }}>StudyBien</div>
         </div>
       </div>
 
@@ -117,7 +117,7 @@ export function PaperPreview({ title, eyebrow, instructions, items, footerLeft, 
              fontSize: '1.3cqw', letterSpacing: '0.06em',
            }}>
         <span>{footerLeft}</span>
-        <span>Made with Pluma</span>
+        <span>Made with StudyBien</span>
         <span>{footerRight}</span>
       </div>
     </div>

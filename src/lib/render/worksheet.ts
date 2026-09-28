@@ -81,7 +81,7 @@ export function renderWorksheetHtml(
       <p class="eyebrow">${esc(eyebrow)}</p>
       <h1>${esc(meta.title)}</h1>
     </div>
-    <div class="lockup">${MARK}<span class="wordmark">Pluma</span></div>
+    <div class="lockup">${MARK}<span class="wordmark">StudyBien</span></div>
   </div>
   ${key
     ? '<div class="keybanner">Answer key</div>'

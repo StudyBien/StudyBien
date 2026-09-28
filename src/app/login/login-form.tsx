@@ -10,7 +10,7 @@ export function LoginForm({ next }: { next: string | null }) {
 
   return (
     <main className="mx-auto max-w-sm px-6 py-20">
-      <h1 className="text-xl font-semibold tracking-tight">Pluma</h1>
+      <h1 className="text-xl font-semibold tracking-tight">StudyBien</h1>
       <p className="mt-1 text-sm text-neutral-600">
         {next
           ? 'Answer keys are free — they just need a teacher account.'
