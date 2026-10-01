@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Atkinson_Hyperlegible, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
+import { ClickSound } from '@/components/click-sound';
 
 /*
  * Self-hosted at build time rather than fetched from Google at runtime: a
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${atkinson.variable} ${plexMono.variable}`}>
-      <body className="bg-paper text-ink antialiased">{children}</body>
+      <body className="bg-paper text-ink antialiased"><ClickSound />{children}</body>
     </html>
   );
 }

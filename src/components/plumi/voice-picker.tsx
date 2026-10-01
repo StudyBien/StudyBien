@@ -24,7 +24,7 @@ export function VoicePicker() {
   }, [open]);
 
   function choose(id: VoiceId) {
-    setVoice(id); saveVoice(id); setVoiceState(id); setPlaying(id);
+    setVoice(id); saveVoice(id); setVoiceState(id); setPlaying(id); setOpen(false);
     speak(SAMPLE, { onEnd: () => setPlaying(null) });
   }
 
