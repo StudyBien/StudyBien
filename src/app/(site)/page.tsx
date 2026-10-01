@@ -45,7 +45,7 @@ export default function Home() {
           <p className="font-mono text-xs uppercase tracking-[0.1em] text-primary">Nuevo</p>
           <h2 className="mt-1 text-2xl font-bold tracking-tight">Learn with Plumi, our talking feather pen</h2>
           <p className="mt-2 text-ink-soft">
-            Bite-sized lessons for every high school level. Plumi says each word out loud, quizzes you five different ways,
+            Picture lessons from A1 to C2. Tap a picture and Plumi says the word, then find it by sight and by sound,
             and brings back what you missed. Earn stars, XP and a daily streak.
           </p>
           <Link href="/learn" className="mt-4 inline-block rounded-lg bg-primary px-5 py-3 font-bold text-paper no-underline hover:bg-primary-hover hover:text-paper">

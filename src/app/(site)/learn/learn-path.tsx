@@ -6,9 +6,9 @@ import { PlumiSays } from '@/components/plumi/plumi';
 import { loadProgress, type Progress } from '@/components/plumi/progress';
 import { speak } from '@/components/plumi/speak';
 
-type L = { id: string; name: string; units: Array<{ id: string; name: string; nameEn: string; lessons: Array<{ key: string; index: number; count: number }> }> };
+type L = { id: string; name: string; school: string; units: Array<{ id: string; name: string; nameEn: string; pics: string[]; lessons: Array<{ key: string; index: number }> }> };
 
-const LEVEL_KEY = 'studybien.plumi.level';
+const LEVEL_KEY = 'studybien.plumi.cefr';
 
 export function LearnPath({ levels }: { levels: L[] }) {
   const [progress, setProgress] = useState<Progress | null>(null);
@@ -42,18 +42,18 @@ export function LearnPath({ levels }: { levels: L[] }) {
         {levels.map((l) => (
           <button key={l.id} role="tab" aria-selected={l.id === levelId} onClick={() => choose(l.id)}
                   className={`rounded-full border px-3.5 py-1.5 text-sm font-bold ${l.id === levelId ? 'border-primary bg-primary text-paper' : 'border-rule hover:border-primary'}`}>
-            {l.name}
+            {l.id}
           </button>
         ))}
       </div>
-      <p className="mt-3 text-sm text-ink-muted">{done} of {all.length} lessons complete</p>
+      <p className="mt-3 text-sm text-ink-muted"><strong className="text-ink">{level.name}</strong> · about {level.school} · {done} of {all.length} lessons complete</p>
 
       <ol className="mt-8 space-y-10">
         {level.units.map((u, ui) => (
           <li key={u.id}>
             <div className="rounded-[var(--radius-lg)] bg-primary-deep px-5 py-3 text-paper">
               <p className="font-mono text-xs uppercase tracking-[0.08em] opacity-80">Unidad {ui + 1}</p>
-              <p className="text-lg font-bold">{u.name} <span className="font-normal opacity-80">· {u.nameEn}</span></p>
+              <p className="text-lg font-bold">{u.name} <span className="font-normal opacity-80">· {u.nameEn}</span> <span aria-hidden className="ml-1">{u.pics.join(' ')}</span></p>
             </div>
             <div className="mt-5 flex flex-col items-center gap-4">
               {u.lessons.map((l, li) => {
@@ -68,7 +68,7 @@ export function LearnPath({ levels }: { levels: L[] }) {
                       stars ? 'border-marigold-ink bg-marigold text-marigold-ink' : isNext ? 'border-primary-deep bg-primary text-paper' : 'border-rule bg-paper-sunk text-ink-muted'}`}>
                       {stars ? '★' : li + 1}
                     </span>
-                    <span className="mt-1 text-xs text-ink-muted">{stars ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : `${l.count} words`}</span>
+                    <span className="mt-1 text-xs text-ink-muted">{stars ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : `Lección ${l.index + 1}`}</span>
                   </Link>
                 );
               })}

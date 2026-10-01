@@ -1,59 +1,46 @@
 /**
- * Plumi's lessons. Each vocabulary theme for the high school levels is split
- * into lessons of about six words. A lesson introduces its words, then drills
- * them with a mix of exercises; anything missed comes back at the end.
+ * Plumi's picture lessons, Duolingo style. Each CEFR unit has eight pictured
+ * words, taught in lessons of four:
+ *
+ *   1. meet   — four pictures; tap each one to hear it
+ *   2. find   — "¿Cuál es «el perro»?" pick the picture (pictures labelled)
+ *   3. listen — hear the word, pick the picture (no labels)
+ *   4. name   — see the picture, pick the Spanish word
+ *
+ * Wrong picks come back at the end. Distractors come from the whole unit, so
+ * the second lesson also reviews the first.
  */
-import { THEMES, type Theme, type Word } from './vocab.ts';
-import { LEVELS, type LevelId } from './levels.ts';
+import { PIC_UNITS, CEFR_LEVELS, type Cefr, type PicUnit, type PicWord } from './picture-vocab.ts';
 
-export const HIGH_SCHOOL: LevelId[] = ['spanish-1', 'spanish-2', 'spanish-3', 'spanish-4', 'spanish-5', 'spanish-6', 'ap-spanish'];
-const PER_LESSON = 6;
+export const PER_LESSON = 4;
 
-export type LessonRef = { themeId: string; index: number; words: Word[]; key: string };
-export type Unit = { theme: Theme; lessons: LessonRef[] };
+export type LessonRef = { unitId: string; index: number; words: PicWord[]; key: string };
 
-/** Units a beginner should meet first; everything else keeps its authored order. */
-const FIRST: Partial<Record<LevelId, string[]>> = { 'spanish-1': ['saludos', 'cortesia', 'frases-clase'] };
-
-export function unitsForLevel(level: LevelId): Unit[] {
-  const first = FIRST[level] ?? [];
-  const themes = THEMES.filter((t) => t.level === level)
-    .sort((a, b) => (first.includes(a.id) ? first.indexOf(a.id) : 99) - (first.includes(b.id) ? first.indexOf(b.id) : 99));
-  return themes.map((theme) => {
-    const n = Math.ceil(theme.words.length / PER_LESSON);
-    // spread words evenly so no lesson is a lonely leftover
-    const size = Math.ceil(theme.words.length / n);
-    return {
-      theme,
-      lessons: Array.from({ length: n }, (_, i) => ({
-        themeId: theme.id, index: i, words: theme.words.slice(i * size, (i + 1) * size), key: `${theme.id}:${i}`,
-      })),
-    };
-  });
+export function lessonsOf(unit: PicUnit): LessonRef[] {
+  const n = Math.ceil(unit.words.length / PER_LESSON);
+  return Array.from({ length: n }, (_, i) => ({
+    unitId: unit.id, index: i, words: unit.words.slice(i * PER_LESSON, (i + 1) * PER_LESSON), key: `${unit.id}:${i}`,
+  }));
 }
 
-export function lessonFor(themeId: string, index: number): { theme: Theme; lesson: LessonRef; level: string } | null {
-  const theme = THEMES.find((t) => t.id === themeId);
-  if (!theme || !HIGH_SCHOOL.includes(theme.level)) return null;
-  const unit = unitsForLevel(theme.level).find((u) => u.theme.id === themeId)!;
-  const lesson = unit.lessons[index];
-  return lesson ? { theme, lesson, level: LEVELS.find((l) => l.id === theme.level)!.name } : null;
+export function unitsForLevel(level: Cefr): Array<{ unit: PicUnit; lessons: LessonRef[] }> {
+  return PIC_UNITS.filter((x) => x.level === level).map((unit) => ({ unit, lessons: lessonsOf(unit) }));
+}
+
+export function lessonFor(unitId: string, index: number): { unit: PicUnit; lesson: LessonRef; levelName: string; count: number } | null {
+  const unit = PIC_UNITS.find((x) => x.id === unitId);
+  if (!unit) return null;
+  const all = lessonsOf(unit);
+  const lesson = all[index];
+  if (!lesson) return null;
+  return { unit, lesson, levelName: CEFR_LEVELS.find((l) => l.id === unit.level)!.name, count: all.length };
 }
 
 export type Exercise =
-  | { kind: 'intro'; word: Word }
-  | { kind: 'meaning'; word: Word; options: string[] }       // see Spanish, pick English
-  | { kind: 'translate'; word: Word; options: string[] }     // see English, pick Spanish
-  | { kind: 'listen'; word: Word; options: string[] }        // hear Spanish, pick Spanish
-  | { kind: 'type'; word: Word }                             // see English, type Spanish
-  | { kind: 'build'; word: Word; tiles: string[] }           // assemble a phrase from tiles
-  | { kind: 'match'; pairs: Word[] };
-
-export function isPhrase(es: string): boolean {
-  return /\s/.test(stripArticle(es).trim());
-}
-
-function stripArticle(es: string) { return es.replace(/^(el|la|los|las)\s+/i, ''); }
+  | { kind: 'meet'; words: PicWord[] }
+  | { kind: 'find'; word: PicWord; options: PicWord[] }
+  | { kind: 'listen'; word: PicWord; options: PicWord[] }
+  | { kind: 'name'; word: PicWord; options: PicWord[] };
 
 function shuffle<T>(xs: readonly T[], rand: () => number): T[] {
   const a = [...xs];
@@ -61,40 +48,16 @@ function shuffle<T>(xs: readonly T[], rand: () => number): T[] {
   return a;
 }
 
-/** Build a lesson's exercise sequence. `rand` is injectable so tests are deterministic. */
-export function buildExercises(words: readonly Word[], pool: readonly Word[], rand: () => number = Math.random): Exercise[] {
-  const others = (w: Word, n: number, by: 0 | 1) =>
-    shuffle(pool.filter((p) => p[by] !== w[by] && p[0] !== w[0] && p[1] !== w[1]), rand).slice(0, n).map((p) => p[by]);
-  const out: Exercise[] = [];
-
-  // teach in pairs: introduce two, then check both straight away
-  for (let i = 0; i < words.length; i += 2) {
-    const pair = words.slice(i, i + 2);
-    for (const w of pair) out.push({ kind: 'intro', word: w });
-    for (const w of pair) out.push({ kind: 'meaning', word: w, options: shuffle([w[1], ...others(w, 3, 1)], rand) });
-  }
-  // then mix it up
-  const mixed: Exercise[] = [];
-  for (const w of shuffle(words, rand)) {
-    const r = rand();
-    if (isPhrase(w[0]) && r < 0.5) {
-      const words = w[0].replace(/[¿?¡!.,…]/g, '').split(/\s+/).filter(Boolean);
-      const extra = shuffle(pool.flatMap((p) => p[0].replace(/[¿?¡!.,…]/g, '').split(/\s+/)).filter((x) => x && !words.includes(x)), rand).slice(0, 2);
-      mixed.push({ kind: 'build', word: w, tiles: shuffle([...words, ...extra], rand) });
-    } else if (r < 0.35) mixed.push({ kind: 'listen', word: w, options: shuffle([w[0], ...others(w, 3, 0)], rand) });
-    else if (r < 0.7) mixed.push({ kind: 'translate', word: w, options: shuffle([w[0], ...others(w, 3, 0)], rand) });
-    else mixed.push({ kind: 'type', word: w });
-  }
-  out.push(...mixed);
-  out.push({ kind: 'match', pairs: shuffle(words, rand).slice(0, Math.min(5, words.length)) });
-  return out;
+/** Four options: the word plus three others from the unit, in random order. */
+function optionsFor(word: PicWord, pool: readonly PicWord[], rand: () => number): PicWord[] {
+  const others = shuffle(pool.filter((p) => p[0] !== word[0] && p[2] !== word[2]), rand).slice(0, 3);
+  return shuffle([word, ...others], rand);
 }
 
-/** Compare a typed answer: exact, close (only accents/punctuation/case differ), or wrong. */
-export function checkTyped(given: string, expected: string): 'exact' | 'close' | 'wrong' {
-  const norm = (s: string) => stripArticle(s.trim().toLowerCase()).replace(/\s+/g, ' ');
-  const loose = (s: string) => norm(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[¿?¡!.,…]/g, '').trim();
-  if (norm(given) === norm(expected) || norm(given).replace(/[¿?¡!.,…]/g, '') === norm(expected).replace(/[¿?¡!.,…]/g, '')) return 'exact';
-  if (loose(given) === loose(expected)) return 'close';
-  return 'wrong';
+export function buildExercises(words: readonly PicWord[], pool: readonly PicWord[], rand: () => number = Math.random): Exercise[] {
+  const out: Exercise[] = [{ kind: 'meet', words: [...words] }];
+  for (const w of shuffle(words, rand)) out.push({ kind: 'find', word: w, options: optionsFor(w, words.length >= 4 ? words : pool, rand) });
+  for (const w of shuffle(words, rand)) out.push({ kind: 'listen', word: w, options: optionsFor(w, pool, rand) });
+  for (const w of shuffle(words, rand)) out.push({ kind: 'name', word: w, options: optionsFor(w, pool, rand) });
+  return out;
 }

@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
-import { LEVELS } from '@/lib/content/levels';
-import { HIGH_SCHOOL, unitsForLevel } from '@/lib/content/lessons';
+import { CEFR_LEVELS } from '@/lib/content/picture-vocab';
+import { unitsForLevel } from '@/lib/content/lessons';
 import { LearnPath } from './learn-path';
 
 export const metadata: Metadata = { title: 'Learn with Plumi' };
 
 export default function Learn() {
-  const levels = HIGH_SCHOOL.map((id) => ({
-    id, name: LEVELS.find((l) => l.id === id)!.name,
-    units: unitsForLevel(id).map((u) => ({
-      id: u.theme.id, name: u.theme.name, nameEn: u.theme.nameEn,
-      lessons: u.lessons.map((l) => ({ key: l.key, index: l.index, count: l.words.length })),
+  const levels = CEFR_LEVELS.map((l) => ({
+    id: l.id, name: l.name, school: l.school,
+    units: unitsForLevel(l.id).map(({ unit, lessons }) => ({
+      id: unit.id, name: unit.name, nameEn: unit.nameEn, pics: unit.words.slice(0, 4).map((w) => w[2]),
+      lessons: lessons.map((x) => ({ key: x.key, index: x.index })),
     })),
   }));
   return <LearnPath levels={levels} />;
