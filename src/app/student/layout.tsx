@@ -8,6 +8,7 @@ const ITEMS = [
   { href: '/student', label: 'Dashboard', icon: '▦', exact: true },
   { href: '/student/calendar', label: 'Calendar', icon: '📅' },
   { href: '/student/todo', label: 'To Do', icon: '☑' },
+  { href: '/learn', label: 'Plumi', icon: '🪶' },
   { href: '/resources/quizzes', label: 'Practice', icon: '✓' },
   { href: '/games', label: 'Games', icon: '★' },
   { href: '/go', label: 'Join class', icon: '+' },

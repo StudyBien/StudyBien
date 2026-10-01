@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 const MENU = [
   { href: '/', label: 'Home', en: 'Inicio', icon: '⌂' },
+  { href: '/learn', label: 'Learn with Plumi', en: 'interactive lessons', icon: '🪶' },
   { href: '/resources/worksheets', label: 'Worksheets', en: 'with answer keys', icon: '▤' },
   { href: '/resources/quizzes', label: 'Quizzes', en: 'auto-graded', icon: '✓' },
   { href: '/resources/tests', label: 'Tests', en: 'unit & final exams', icon: '◈' },

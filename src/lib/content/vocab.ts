@@ -90,6 +90,26 @@ export const THEMES: readonly Theme[] = [
     ['abrir', 'to open'], ['aprender', 'to learn'],
   ] },
 
+  { id: 'saludos', level: 'spanish-1', name: 'Saludos y despedidas', nameEn: 'Greetings and goodbyes', words: [
+    ['hola', 'hello'], ['buenos días', 'good morning'], ['buenas tardes', 'good afternoon'], ['buenas noches', 'good evening / good night'],
+    ['¿Cómo estás?', 'How are you? (informal)'], ['¿Cómo está usted?', 'How are you? (formal)'], ['Muy bien, gracias.', 'Very well, thank you.'],
+    ['¿Cómo te llamas?', 'What is your name?'], ['Me llamo…', 'My name is…'], ['Mucho gusto.', 'Nice to meet you.'],
+    ['adiós', 'goodbye'], ['hasta luego', 'see you later'], ['hasta mañana', 'see you tomorrow'], ['¿De dónde eres?', 'Where are you from?'],
+  ] },
+  { id: 'frases-clase', level: 'spanish-1', name: 'Frases para la clase', nameEn: 'Classroom phrases', words: [
+    ['¿Cómo se dice…?', 'How do you say…?'], ['¿Qué significa…?', 'What does … mean?'], ['No entiendo.', 'I don’t understand.'],
+    ['Repita, por favor.', 'Please repeat.'], ['¿Puedo ir al baño?', 'May I go to the bathroom?'], ['Tengo una pregunta.', 'I have a question.'],
+    ['Más despacio, por favor.', 'More slowly, please.'], ['¿Cómo se escribe…?', 'How do you spell…?'], ['Abran los libros.', 'Open your books.'],
+    ['Saquen una hoja de papel.', 'Take out a sheet of paper.'], ['Levanten la mano.', 'Raise your hands.'], ['Lo siento.', 'I’m sorry.'],
+    ['De nada.', 'You’re welcome.'], ['Con permiso.', 'Excuse me (to pass).'],
+  ] },
+  { id: 'cortesia', level: 'spanish-1', name: 'Frases útiles', nameEn: 'Everyday phrases', words: [
+    ['por favor', 'please'], ['gracias', 'thank you'], ['¿Qué hora es?', 'What time is it?'], ['Es la una.', 'It’s one o’clock.'],
+    ['¿Cuántos años tienes?', 'How old are you?'], ['Tengo quince años.', 'I am fifteen years old.'], ['¿Qué tiempo hace?', 'What’s the weather like?'],
+    ['Hace calor.', 'It’s hot.'], ['Hace frío.', 'It’s cold.'], ['¿Qué te gusta hacer?', 'What do you like to do?'],
+    ['Me gusta leer.', 'I like to read.'], ['¿Cuánto cuesta?', 'How much does it cost?'], ['¿Dónde está…?', 'Where is…?'], ['Tengo hambre.', 'I’m hungry.'],
+  ] },
+
   // ------------------------------------------------------------ Spanish 2
   { id: 'deportes', level: 'spanish-2', name: 'Los deportes', nameEn: 'Sports', words: [
     ['el fútbol', 'soccer'], ['el béisbol', 'baseball'], ['el baloncesto', 'basketball'], ['la natación', 'swimming'],
@@ -128,6 +148,19 @@ export const THEMES: readonly Theme[] = [
     ['el probador', 'fitting room'], ['la rebaja', 'sale'], ['gastar', 'to spend'], ['pagar', 'to pay'],
   ] },
 
+  { id: 'restaurante', level: 'spanish-2', name: 'En el restaurante', nameEn: 'At the restaurant', words: [
+    ['Una mesa para dos, por favor.', 'A table for two, please.'], ['¿Qué me recomienda?', 'What do you recommend?'],
+    ['Quisiera…', 'I would like…'], ['La cuenta, por favor.', 'The check, please.'], ['el menú', 'menu'], ['el mesero', 'waiter'],
+    ['la propina', 'tip'], ['el plato principal', 'main course'], ['el postre', 'dessert'], ['¡Buen provecho!', 'Enjoy your meal!'],
+    ['Está delicioso.', 'It’s delicious.'], ['Soy alérgico a…', 'I’m allergic to…'], ['¿Algo más?', 'Anything else?'], ['para llevar', 'to go'],
+  ] },
+  { id: 'direcciones', level: 'spanish-2', name: 'Pedir direcciones', nameEn: 'Asking for directions', words: [
+    ['¿Cómo llego a…?', 'How do I get to…?'], ['Siga derecho.', 'Go straight.'], ['Doble a la derecha.', 'Turn right.'],
+    ['Doble a la izquierda.', 'Turn left.'], ['cerca de', 'near'], ['lejos de', 'far from'], ['al lado de', 'next to'],
+    ['enfrente de', 'across from'], ['detrás de', 'behind'], ['la cuadra', 'city block'], ['cruce la calle', 'cross the street'],
+    ['¿Está lejos?', 'Is it far?'], ['a dos cuadras', 'two blocks away'], ['entre', 'between'],
+  ] },
+
   // ------------------------------------------------------------ Spanish 3
   { id: 'profesiones', level: 'spanish-3', name: 'Las profesiones', nameEn: 'Professions', words: [
     ['el abogado', 'lawyer'], ['el bombero', 'firefighter'], ['el cocinero', 'cook'], ['el ingeniero', 'engineer'],
@@ -159,6 +192,20 @@ export const THEMES: readonly Theme[] = [
     ['la cascada', 'waterfall'], ['la colina', 'hill'], ['la cueva', 'cave'], ['el mar', 'sea'],
   ] },
 
+  { id: 'opiniones', level: 'spanish-3', name: 'Dar opiniones', nameEn: 'Giving opinions', words: [
+    ['En mi opinión…', 'In my opinion…'], ['Creo que…', 'I think that…'], ['No creo que…', 'I don’t think that…'],
+    ['Estoy de acuerdo.', 'I agree.'], ['No estoy de acuerdo.', 'I disagree.'], ['Tienes razón.', 'You’re right.'],
+    ['Me parece que…', 'It seems to me that…'], ['Es importante que…', 'It’s important that…'], ['Por un lado…', 'On one hand…'],
+    ['Por otro lado…', 'On the other hand…'], ['Depende.', 'It depends.'], ['¡Qué buena idea!', 'What a good idea!'],
+    ['Sin duda.', 'Without a doubt.'], ['¿Qué opinas?', 'What do you think?'],
+  ] },
+  { id: 'expresiones-tener', level: 'spanish-3', name: 'Expresiones con tener y hacer', nameEn: 'Expressions with tener and hacer', words: [
+    ['tener ganas de', 'to feel like (doing)'], ['tener prisa', 'to be in a hurry'], ['tener sueño', 'to be sleepy'], ['tener miedo', 'to be afraid'],
+    ['tener suerte', 'to be lucky'], ['tener éxito', 'to be successful'], ['tener cuidado', 'to be careful'], ['tener que', 'to have to'],
+    ['hacer cola', 'to wait in line'], ['hacer una pregunta', 'to ask a question'], ['hacer la maleta', 'to pack a suitcase'],
+    ['hace tres años', 'three years ago'], ['hacer caso', 'to pay attention / heed'], ['hacer falta', 'to be needed'],
+  ] },
+
   // ------------------------------------------------------------ Spanish 4
   { id: 'relaciones', level: 'spanish-4', name: 'Las relaciones personales', nameEn: 'Relationships', words: [
     ['la amistad', 'friendship'], ['el noviazgo', 'courtship / dating'], ['casarse', 'to get married'],
@@ -184,6 +231,13 @@ export const THEMES: readonly Theme[] = [
     ['picar', 'to chop'], ['la olla', 'pot'], ['la sartén', 'frying pan'], ['el horno', 'oven'],
     ['la receta', 'recipe'], ['el ingrediente', 'ingredient'], ['agregar', 'to add'], ['probar', 'to taste'],
     ['la cucharada', 'tablespoon'], ['pelar', 'to peel'],
+  ] },
+
+  { id: 'conversacion', level: 'spanish-4', name: 'Conversación natural', nameEn: 'Natural conversation', words: [
+    ['¿Qué tal?', 'How’s it going?'], ['¿Qué hay de nuevo?', 'What’s new?'], ['Bueno…', 'Well…'], ['O sea…', 'I mean…'],
+    ['¿En serio?', 'Seriously?'], ['¡No me digas!', 'You don’t say!'], ['¡Qué lástima!', 'What a shame!'], ['¡Qué suerte!', 'How lucky!'],
+    ['A propósito…', 'By the way…'], ['Me da igual.', 'I don’t mind.'], ['¡Claro que sí!', 'Of course!'], ['Ni idea.', 'No idea.'],
+    ['Vale.', 'OK (Spain).'], ['Nos vemos.', 'See you.'],
   ] },
 
   // ------------------------------------------------------------ Spanish 5
@@ -212,6 +266,14 @@ export const THEMES: readonly Theme[] = [
     ['el papel', 'role'], ['aplaudir', 'to applaud'], ['el doblaje', 'dubbing'],
   ] },
 
+  { id: 'debatir', level: 'spanish-5', name: 'Debatir y persuadir', nameEn: 'Debating and persuading', words: [
+    ['Hay que tener en cuenta que…', 'One must keep in mind that…'], ['Cabe mencionar que…', 'It’s worth mentioning that…'],
+    ['Lo que pasa es que…', 'The thing is that…'], ['Desde mi punto de vista…', 'From my point of view…'],
+    ['No cabe duda de que…', 'There is no doubt that…'], ['Al contrario…', 'On the contrary…'], ['Sin embargo…', 'However…'],
+    ['Por eso…', 'That’s why…'], ['Es verdad, pero…', 'That’s true, but…'], ['Me opongo a…', 'I’m against…'],
+    ['Estoy a favor de…', 'I’m in favor of…'], ['Para concluir…', 'To conclude…'], ['Dicho esto…', 'That said…'], ['En resumidas cuentas…', 'In short…'],
+  ] },
+
   // ------------------------------------------------------------ Spanish 6
   { id: 'politica', level: 'spanish-6', name: 'La política y la sociedad', nameEn: 'Politics and society', words: [
     ['el gobierno', 'government'], ['las elecciones', 'elections'], ['el ciudadano', 'citizen'], ['votar', 'to vote'],
@@ -230,6 +292,14 @@ export const THEMES: readonly Theme[] = [
     ['la pérdida', 'loss'], ['invertir', 'to invest'], ['la bolsa de valores', 'stock market'],
     ['el socio', 'business partner'], ['la sucursal', 'branch office'], ['el mercado laboral', 'job market'],
     ['la mercancía', 'merchandise'], ['exportar', 'to export'], ['el plazo', 'deadline / term'], ['la factura', 'invoice'],
+  ] },
+
+  { id: 'formal', level: 'spanish-6', name: 'Registro formal', nameEn: 'Formal register', words: [
+    ['Estimado/a señor/a:', 'Dear Sir/Madam:'], ['Le escribo para…', 'I am writing to…'], ['Quisiera solicitar…', 'I would like to request…'],
+    ['Le agradecería que…', 'I would be grateful if…'], ['Adjunto le envío…', 'Attached please find…'], ['Quedo a la espera de su respuesta.', 'I look forward to your reply.'],
+    ['Atentamente', 'Sincerely'], ['Disculpe la molestia.', 'Sorry for the trouble.'], ['¿Sería tan amable de…?', 'Would you be so kind as to…?'],
+    ['Con respecto a…', 'With regard to…'], ['A continuación…', 'Below / Next…'], ['De antemano, gracias.', 'Thank you in advance.'],
+    ['Me pongo en contacto con usted…', 'I am contacting you…'], ['Un cordial saludo', 'Kind regards'],
   ] },
 
   // ------------------------------------------------------------ AP Spanish

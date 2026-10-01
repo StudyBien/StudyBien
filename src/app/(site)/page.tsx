@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Bienvenidos } from '@/components/bienvenidos';
+import { Plumi } from '@/components/plumi/plumi';
 import { LEVELS } from '@/lib/content/levels';
 import { allQuizzes, allTests, allWorksheets } from '@/lib/content/catalog';
 import { READINGS } from '@/lib/content/readings';
@@ -34,6 +35,21 @@ export default function Home() {
           <Link href="/go"
                 className="rounded-lg border-2 border-paper/70 px-5 py-3 font-bold text-paper no-underline hover:bg-paper/10 hover:text-paper">
             I’m a student: join with a code
+          </Link>
+        </div>
+      </section>
+
+      <section className="mt-10 flex flex-col items-center gap-6 rounded-[var(--radius-lg)] border-2 border-primary-tint p-6 sm:flex-row sm:p-8" style={{ background: '#F5FBFF' }}>
+        <Plumi mood="happy" size={110} className="flex-none" />
+        <div className="flex-1">
+          <p className="font-mono text-xs uppercase tracking-[0.1em] text-primary">Nuevo</p>
+          <h2 className="mt-1 text-2xl font-bold tracking-tight">Learn with Plumi, our talking feather pen</h2>
+          <p className="mt-2 text-ink-soft">
+            Bite-sized lessons for every high school level. Plumi says each word out loud, quizzes you five different ways,
+            and brings back what you missed. Earn stars, XP and a daily streak.
+          </p>
+          <Link href="/learn" className="mt-4 inline-block rounded-lg bg-primary px-5 py-3 font-bold text-paper no-underline hover:bg-primary-hover hover:text-paper">
+            Start learning →
           </Link>
         </div>
       </section>
