@@ -6,7 +6,7 @@ export type VoiceId = 'mx-f' | 'es-f' | 'mx-m' | 'es-m';
 export type VoiceOption = { id: VoiceId; name: string; label: string; flag: string; model: string; speaker?: number };
 
 export const VOICES: VoiceOption[] = [
-  { id: 'mx-f', name: 'Valeria', label: 'Mexican · female', flag: '🇲🇽', model: 'es_MX-claude-high' },
+  { id: 'mx-f', name: 'Sofía', label: 'Mexican · female', flag: '🇲🇽', model: 'es_MX-claude-high' },
   { id: 'es-f', name: 'Lucía', label: 'Spain · female', flag: '🇪🇸', model: 'es_ES-sharvard-medium', speaker: 1 },
   { id: 'mx-m', name: 'Diego', label: 'Mexican · male', flag: '🇲🇽', model: 'es_MX-ald-medium' },
   { id: 'es-m', name: 'Javier', label: 'Spain · male', flag: '🇪🇸', model: 'es_ES-davefx-medium' },
