@@ -12,8 +12,8 @@ export function Bienvenidos() {
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setPhase('gone'); return; }
-    const t1 = setTimeout(() => setPhase('out'), 1700);
-    const t2 = setTimeout(() => setPhase('gone'), 2300);
+    const t1 = setTimeout(() => setPhase('out'), 650);
+    const t2 = setTimeout(() => setPhase('gone'), 900);
     const skip = () => setPhase('gone');
     window.addEventListener('keydown', skip);
     return () => { clearTimeout(t1); clearTimeout(t2); window.removeEventListener('keydown', skip); };
@@ -24,7 +24,7 @@ export function Bienvenidos() {
     <div
       onClick={() => setPhase('gone')}
       role="presentation"
-      className={`fixed inset-0 z-50 grid cursor-pointer place-items-center bg-primary text-paper transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 grid cursor-pointer place-items-center bg-primary text-paper transition-opacity duration-200 ${
         phase === 'out' ? 'opacity-0' : 'opacity-100'
       }`}
     >

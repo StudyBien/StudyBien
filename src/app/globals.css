@@ -113,8 +113,8 @@
   from { opacity: 0; transform: translateY(18px) scale(0.97); }
   to   { opacity: 1; transform: none; }
 }
-.bienvenidos-word { animation: bienvenidos-rise 700ms cubic-bezier(.2,.8,.2,1) both; }
-.bienvenidos-sub  { animation: bienvenidos-rise 700ms 250ms cubic-bezier(.2,.8,.2,1) both; }
+.bienvenidos-word { animation: bienvenidos-rise 300ms cubic-bezier(.2,.8,.2,1) both; }
+.bienvenidos-sub  { animation: bienvenidos-rise 300ms 80ms cubic-bezier(.2,.8,.2,1) both; }
 
 @media print {
   .no-print { display: none !important; }
