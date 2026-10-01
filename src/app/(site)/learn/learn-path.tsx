@@ -122,25 +122,39 @@ function NivelBubble({ number, stars, isNext, burst }: { number: number; stars: 
   );
 }
 
-/** A small burst of confetti around a bubble. */
+/** Rounded splash arms around the blot: angle (deg), length, width. */
+const ARMS: Array<[number, number, number]> = [
+  [-10, 30, 9], [35, 22, 7], [78, 34, 8], [120, 20, 7], [160, 28, 9], [205, 24, 7], [250, 32, 8], [295, 21, 7], [330, 27, 6],
+];
+
+/** A pen-ink splash: a splat bursts out of the bubble, throws droplets, then fades. */
 function Burst() {
-  const colors = ['var(--color-primary)', 'var(--color-marigold)', 'var(--color-teal)', 'var(--color-tangerine-bright)'];
+  const drops = [
+    { dx: 58, dy: -30, r: 5 }, { dx: -54, dy: -38, r: 4 }, { dx: 64, dy: 24, r: 3.5 }, { dx: -62, dy: 18, r: 5.5 },
+    { dx: 18, dy: -64, r: 3 }, { dx: -22, dy: 60, r: 4 }, { dx: 40, dy: 56, r: 2.5 }, { dx: -40, dy: -58, r: 2.5 },
+    { dx: 74, dy: -6, r: 2 }, { dx: -76, dy: -4, r: 2.5 },
+  ];
   return (
     <span aria-hidden className="pointer-events-none absolute inset-0">
-      {Array.from({ length: 16 }, (_, i) => {
-        const angle = (i / 16) * Math.PI * 2;
-        const dist = 46 + (i % 3) * 12;
-        return (
-          <span key={i} className="nivel-spark absolute left-1/2 top-1/2 h-2.5 w-2.5 rounded-sm"
-                style={{
-                  background: colors[i % colors.length],
-                  ['--dx' as string]: `${Math.cos(angle) * dist}px`,
-                  ['--dy' as string]: `${Math.sin(angle) * dist}px`,
-                  animationDelay: `${(i % 4) * 30}ms`,
-                }} />
-        );
-      })}
-      <span className="nivel-ring absolute inset-0 rounded-full border-4 border-marigold" />
+      <svg viewBox="0 0 100 100" className="ink-splat absolute left-1/2 top-1/2 h-[150px] w-[150px]" style={{ color: 'oklch(0.37 0.145 252)' }}>
+        <g fill="currentColor">
+          <circle cx="50" cy="50" r="25" />
+          {ARMS.map(([deg, len, w], i) => (
+            <g key={i} transform={`rotate(${deg} 50 50)`}>
+              <rect x="50" y={50 - w / 2} width={len + 12} height={w} rx={w / 2} />
+              <circle cx={50 + len + 14} cy="50" r={w * 0.62} />
+            </g>
+          ))}
+        </g>
+      </svg>
+      {drops.map((d, i) => (
+        <span key={i} className="ink-drop absolute left-1/2 top-1/2 rounded-full"
+              style={{
+                width: d.r * 2, height: d.r * 2, background: 'oklch(0.37 0.145 252)',
+                ['--dx' as string]: `${d.dx}px`, ['--dy' as string]: `${d.dy}px`, animationDelay: `${60 + (i % 3) * 40}ms`,
+              }} />
+      ))}
+      <span className="ink-drip absolute left-1/2 top-[70%] w-2 rounded-b-full" style={{ background: 'oklch(0.37 0.145 252)' }} />
     </span>
   );
 }

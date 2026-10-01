@@ -135,10 +135,12 @@
 /* Nivel bubbles on the learning path */
 @keyframes nivel-pulse { 0%,100% { box-shadow: 0 0 0 0 oklch(0.51 0.175 252 / 0.45); } 50% { box-shadow: 0 0 0 10px oklch(0.51 0.175 252 / 0); } }
 @keyframes nivel-pop { 0% { transform: scale(0.6); } 55% { transform: scale(1.25); } 100% { transform: scale(1); } }
-@keyframes nivel-spark { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.4) rotate(160deg); opacity: 0; } }
-@keyframes nivel-ring { 0% { transform: scale(0.8); opacity: 0.9; } 100% { transform: scale(2.1); opacity: 0; } }
+@keyframes ink-splat { 0% { transform: translate(-50%, -50%) scale(0.1) rotate(-20deg); opacity: 0.95; } 25% { transform: translate(-50%, -50%) scale(1.08) rotate(4deg); opacity: 0.95; } 70% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.85; } 100% { transform: translate(-50%, -50%) scale(1.02); opacity: 0; } }
+@keyframes ink-drop { 0% { transform: translate(-50%, -50%) scale(0.4); opacity: 1; } 60% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity: 0; } }
+@keyframes ink-drip { 0% { height: 0; opacity: 0.9; } 60% { height: 34px; opacity: 0.9; } 100% { height: 40px; opacity: 0; } }
 .nivel-pulse { animation: nivel-pulse 1.8s ease-in-out infinite; }
 .nivel-pop { animation: nivel-pop 600ms cubic-bezier(.2,.9,.3,1.4) both; }
-.nivel-spark { animation: nivel-spark 900ms cubic-bezier(.15,.7,.3,1) both; }
-.nivel-ring { animation: nivel-ring 700ms ease-out both; }
-@media (prefers-reduced-motion: reduce) { .nivel-pulse, .nivel-pop, .nivel-spark, .nivel-ring { animation: none; } .nivel-spark, .nivel-ring { display: none; } }
+.ink-splat { animation: ink-splat 1500ms cubic-bezier(.2,.8,.2,1) both; }
+.ink-drop { animation: ink-drop 900ms cubic-bezier(.15,.7,.3,1) both; }
+.ink-drip { transform: translateX(-50%); animation: ink-drip 1400ms 300ms ease-in both; }
+@media (prefers-reduced-motion: reduce) { .nivel-pulse, .nivel-pop { animation: none; } .ink-splat, .ink-drop, .ink-drip { display: none; } }

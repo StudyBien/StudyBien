@@ -3,8 +3,9 @@
 /**
  * Plumi's voice.
  *
- * First choice is the natural neural voice from /api/tts (when the site has a
- * Google TTS key). Otherwise, the most natural Spanish voice this device has:
+ * First choice is a pre-recorded clip in /voice (generated once with the free
+ * Piper engine; see public/voice/LICENSE.md). Then the neural voice from
+ * /api/tts, if the site has a Google TTS key. Otherwise, the most natural Spanish voice this device has:
  * Edge's "Natural" voices, Chrome's Google voices and Apple's enhanced voices
  * sound far less robotic than the defaults, so they're preferred by name.
  */
@@ -54,6 +55,16 @@ function browserSpeak(text: string, onEnd?: () => void) {
   }
 }
 
+let manifest: Promise<Record<string, string>> | undefined;
+function clips(): Promise<Record<string, string>> {
+  return (manifest ??= fetch('/voice/manifest.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+}
+
+async function clipUrl(text: string): Promise<string | null> {
+  const id = (await clips())[text];
+  return id ? `/voice/${id}.mp3` : null;
+}
+
 async function premiumUrl(text: string): Promise<string | null> {
   if (premium === false) return null;
   const hit = audioCache.get(text);
@@ -75,7 +86,7 @@ export function speak(text: string, opts: { onEnd?: () => void } = {}): void {
   if (typeof window === 'undefined') return;
   current?.pause();
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  void premiumUrl(text).then((url) => {
+  void clipUrl(text).then((u) => u ?? premiumUrl(text)).then((url) => {
     if (!url) { browserSpeak(text, opts.onEnd); return; }
     const a = new Audio(url);
     current = a;
@@ -87,5 +98,10 @@ export function speak(text: string, opts: { onEnd?: () => void } = {}): void {
 
 /** Warm the cache so the first tap plays instantly. */
 export function preload(texts: string[]): void {
-  for (const t of texts) void premiumUrl(t);
+  void clips().then((m) => {
+    for (const t of texts) {
+      if (m[t]) { const a = new Audio(`/voice/${m[t]}.mp3`); a.preload = 'auto'; }
+      else void premiumUrl(t);
+    }
+  });
 }
