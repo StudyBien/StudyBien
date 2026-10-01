@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Plumi, PlumiSays } from '@/components/plumi/plumi';
 import { loadProgress, takeBurst, type Progress } from '@/components/plumi/progress';
 import { speak } from '@/components/plumi/speak';
+import { VoicePicker } from '@/components/plumi/voice-picker';
 
 type L = { id: string; name: string; school: string; units: Array<{ id: string; name: string; nameEn: string; pics: string[]; lessons: Array<{ key: string; index: number }> }> };
 
@@ -41,7 +42,7 @@ export function LearnPath({ levels }: { levels: L[] }) {
         <PlumiSays mood={burst ? 'cheer' : 'happy'} size={96}>
           <p className="font-bold">{burst ? '¡Nivel completado! 🎉' : '¡Hola! Soy Plumi. 🪶'}</p>
           <p className="text-ink-soft">{next ? <>Next up: <strong>Nivel {niveles.indexOf(next) + 1}</strong> · {next.unit.name}</> : '¡Terminaste este nivel! Pick another level.'}</p>
-          <button onClick={() => speak('¡Hola! Soy Plumi. ¡Vamos a aprender español!')} className="mt-1 text-sm font-bold text-primary">🔊 Escuchar</button>
+          <VoicePicker />
         </PlumiSays>
         <div className="flex gap-3 text-center">
           <Stat label="Racha" value={`🔥 ${progress?.streak ?? 0}`} />
@@ -102,6 +103,10 @@ export function LearnPath({ levels }: { levels: L[] }) {
           <p className="text-lg font-bold">¡Felicidades! You finished every nivel in {level.id}.</p>
         </div>
       )}
+      <p className="mt-12 text-center text-xs text-ink-muted">
+        Plumi’s voices are free, open-source <a href="https://github.com/rhasspy/piper">Piper</a> voices.
+        Lucía’s voice was trained on the Sharvard corpus (University of Edinburgh, CC BY 3.0).
+      </p>
     </div>
   );
 }

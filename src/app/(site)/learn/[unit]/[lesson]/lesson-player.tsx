@@ -6,14 +6,15 @@ import { Plumi, PlumiSays, type Mood } from '@/components/plumi/plumi';
 import { speak, preload } from '@/components/plumi/speak';
 import { recordLesson, markBurst } from '@/components/plumi/progress';
 import { buildExercises, type Exercise } from '@/lib/content/lessons';
-import { sameSentence } from '@/lib/content/sentences';
+import { sameSentence, tokens } from '@/lib/content/sentences';
+import { CORRECT, STREAK, WRONG, SLIP, PERFECT, OUT_OF_HEARTS, FLAG, pickReaction, type Reaction } from '@/components/plumi/reactions';
 
 type W = readonly [string, string, string];
-type Feedback = { ok: boolean; title: string; detail?: string } | null;
+type Feedback = { ok: boolean; reaction: Reaction; detail?: string } | null;
 
 const HEARTS = 5;
-const PRAISE = ['¡Excelente!', '¡Muy bien!', '¡Perfecto!', '¡Fantástico!', '¡Eso es!', '¡Increíble!', '¡Bien hecho!'];
-const COMFORT = ['¡Casi! Lo vemos otra vez.', 'No pasa nada. ¡Sigue!', 'Ánimo, la próxima sí.'];
+/** What a check reports back: right or wrong, what to show, what Plumi should repeat, and whether it was a near miss. */
+type Verdict = { ok: boolean; detail?: string; echo?: string; slip?: boolean };
 const pick = <T,>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
 
 export function LessonPlayer({ lessonKey, unitId, title, level, words, pool }: {
@@ -25,12 +26,14 @@ export function LessonPlayer({ lessonKey, unitId, title, level, words, pool }: {
   const [mistakes, setMistakes] = useState(0);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [mood, setMood] = useState<Mood>('happy');
-  const [finished, setFinished] = useState<{ stars: number; xp: number } | null>(null);
+  const [finished, setFinished] = useState<{ stars: number; xp: number; reaction: Reaction | null } | null>(null);
+  const [streak, setStreak] = useState(0);
+  const [fail, setFail] = useState<Reaction | null>(null);
 
   const start = useCallback(() => {
     const q = buildExercises(words, pool, Math.random, unitId);
     preload([...words.map((w) => w[0]), ...q.flatMap((e) => (e.kind === 'tiles' ? [e.sentence.es] : []))]);
-    setQueue(q); setI(0); setHearts(HEARTS); setMistakes(0); setFeedback(null); setFinished(null); setMood('happy');
+    setQueue(q); setI(0); setHearts(HEARTS); setMistakes(0); setFeedback(null); setFinished(null); setMood('happy'); setStreak(0); setFail(null);
   }, [words, pool, unitId]);
   useEffect(() => { start(); }, [start]);
 
@@ -38,12 +41,29 @@ export function LessonPlayer({ lessonKey, unitId, title, level, words, pool }: {
   const ex = queue[i];
   const total = queue.length;
 
-  function answer(ok: boolean, detail?: string) {
-    if (ok) { setMood('cheer'); setFeedback({ ok: true, title: pick(PRAISE), detail }); return; }
+  /** Plumi reacts out loud, then (optionally) repeats the right answer. */
+  function react(reaction: Reaction, echo?: string) {
+    speak(reaction.say, { onEnd: echo ? () => speak(echo) : undefined });
+  }
+
+  function answer(v: Verdict) {
+    if (v.ok) {
+      const run = streak + 1;
+      setStreak(run);
+      const reaction = run >= 3 && run % 3 === 0 ? pickReaction(STREAK) : pickReaction(CORRECT);
+      setMood('cheer');
+      setFeedback({ ok: true, reaction, detail: run >= 3 ? `${run} seguidas 🔥 · ${v.detail ?? ''}` : v.detail });
+      react(reaction, v.echo);
+      return;
+    }
+    const reaction = pickReaction(v.slip ? SLIP : WRONG);
+    setStreak(0);
     setMood('sad');
     setMistakes((m) => m + 1);
-    setHearts((h) => h - 1);
-    setFeedback({ ok: false, title: pick(COMFORT), detail });
+    if (hearts - 1 <= 0) setFail(pickReaction(OUT_OF_HEARTS));
+    setHearts(hearts - 1);
+    setFeedback({ ok: false, reaction, detail: v.detail });
+    react(reaction, v.echo);
     if (ex.kind !== 'meet') setQueue((q) => [...q!, ex]);   // it comes back before the end
   }
 
@@ -55,9 +75,10 @@ export function LessonPlayer({ lessonKey, unitId, title, level, words, pool }: {
       const xp = 10 + stars * 5;
       recordLesson(lessonKey, stars, xp);
       markBurst(lessonKey);
-      setFinished({ stars, xp });
+      const perfect = mistakes === 0 ? pickReaction(PERFECT) : null;
+      setFinished({ stars, xp, reaction: perfect });
       setMood('cheer');
-      speak('¡Lección completa! ¡Bien hecho!');
+      speak(perfect ? perfect.say : '¡Lección completa! ¡Bien hecho!');
     } else setI(i + 1);
   }
 
@@ -66,7 +87,8 @@ export function LessonPlayer({ lessonKey, unitId, title, level, words, pool }: {
       <Shell title={title} level={level} progress={i / total} hearts={0}>
         <div className="flex flex-col items-center py-10 text-center">
           <Plumi mood="sad" size={130} />
-          <h2 className="mt-4 text-2xl font-bold">¡Ay! Te quedaste sin corazones.</h2>
+          <h2 className="mt-4 text-2xl font-bold">{fail ? <>{fail.say} {FLAG[fail.region]}</> : '¡Ay! Te quedaste sin corazones.'}</h2>
+          {fail && <p className="text-ink-muted">“{fail.en}” · Te quedaste sin corazones.</p>}
           <p className="mt-1 text-ink-soft">Every mistake is practice. Let’s try this lesson again!</p>
           <button onClick={start} className="mt-6 rounded-xl bg-primary px-8 py-3 font-bold text-paper hover:bg-primary-hover">Intentar otra vez</button>
         </div>
@@ -80,6 +102,7 @@ export function LessonPlayer({ lessonKey, unitId, title, level, words, pool }: {
           <Plumi mood="cheer" size={140} />
           <h2 className="mt-4 text-3xl font-bold">¡Lección completa!</h2>
           <p className="mt-2 text-4xl text-marigold" aria-label={`${finished.stars} stars`}>{'★'.repeat(finished.stars)}<span className="text-rule">{'★'.repeat(3 - finished.stars)}</span></p>
+          {finished.reaction && <p className="mt-1 text-xl font-bold text-primary">{finished.reaction.say} {FLAG[finished.reaction.region]}</p>}
           <p className="mt-2 text-lg">+{finished.xp} XP · {mistakes === 0 ? '¡Sin errores!' : `${mistakes} error${mistakes === 1 ? '' : 'es'}`}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-3 text-4xl" aria-label="Words learned">{words.map((w) => <span key={w[0]} title={w[0]}>{w[2]}</span>)}</div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -103,7 +126,10 @@ export function LessonPlayer({ lessonKey, unitId, title, level, words, pool }: {
       {feedback && (
         <Footer tone={feedback.ok ? 'ok' : 'bad'}>
           <div>
-            <p className="text-xl font-bold">{feedback.ok ? '✓ ' : '✗ '}{feedback.title}</p>
+            <p className="text-xl font-bold">
+              {feedback.ok ? '✓ ' : '✗ '}{feedback.reaction.say} {FLAG[feedback.reaction.region]}
+              <span className="ml-2 text-sm font-normal opacity-75">“{feedback.reaction.en}”</span>
+            </p>
             {feedback.detail && <p className="mt-0.5">{feedback.detail}</p>}
           </div>
           <button onClick={next} autoFocus
@@ -206,7 +232,7 @@ function Meet({ words, onReady }: { words: W[]; onReady: () => void }) {
 
 /** "¿Cuál es…?" (labelled pictures) or listen-only (unlabelled). */
 function PickPicture({ ex, mood, locked, onAnswer }: {
-  ex: Extract<Exercise, { kind: 'find' | 'listen' }>; mood: Mood; locked: boolean; onAnswer: (ok: boolean, detail?: string) => void;
+  ex: Extract<Exercise, { kind: 'find' | 'listen' }>; mood: Mood; locked: boolean; onAnswer: (v: Verdict) => void;
 }) {
   const [sel, setSel] = useState<string | null>(null);
   const listen = ex.kind === 'listen';
@@ -229,7 +255,7 @@ function PickPicture({ ex, mood, locked, onAnswer }: {
       </div>
       {!locked && (
         <Footer>
-          <button disabled={!sel} onClick={() => onAnswer(sel === ex.word[0], `${ex.word[2]} ${ex.word[0]} = ${ex.word[1]}`)}
+          <button disabled={!sel} onClick={() => onAnswer({ ok: sel === ex.word[0], detail: `${ex.word[2]} ${ex.word[0]} = ${ex.word[1]}`, echo: ex.word[0] })}
                   className="ml-auto rounded-xl bg-primary px-10 py-3 font-bold text-paper hover:bg-primary-hover disabled:bg-rule disabled:text-ink-muted">
             Comprobar
           </button>
@@ -241,7 +267,7 @@ function PickPicture({ ex, mood, locked, onAnswer }: {
 
 /** One big picture; pick its Spanish name. */
 function NamePicture({ ex, mood, locked, onAnswer }: {
-  ex: Extract<Exercise, { kind: 'name' }>; mood: Mood; locked: boolean; onAnswer: (ok: boolean, detail?: string) => void;
+  ex: Extract<Exercise, { kind: 'name' }>; mood: Mood; locked: boolean; onAnswer: (v: Verdict) => void;
 }) {
   const [sel, setSel] = useState<string | null>(null);
   return (
@@ -265,7 +291,7 @@ function NamePicture({ ex, mood, locked, onAnswer }: {
       </div>
       {!locked && (
         <Footer>
-          <button disabled={!sel} onClick={() => { speak(ex.word[0]); onAnswer(sel === ex.word[0], `${ex.word[2]} ${ex.word[0]} = ${ex.word[1]}`); }}
+          <button disabled={!sel} onClick={() => onAnswer({ ok: sel === ex.word[0], detail: `${ex.word[2]} ${ex.word[0]} = ${ex.word[1]}`, echo: ex.word[0] })}
                   className="ml-auto rounded-xl bg-primary px-10 py-3 font-bold text-paper hover:bg-primary-hover disabled:bg-rule disabled:text-ink-muted">
             Comprobar
           </button>
@@ -277,7 +303,7 @@ function NamePicture({ ex, mood, locked, onAnswer }: {
 
 /** Spanish word (with its picture) → pick the English meaning. */
 function Meaning({ ex, mood, locked, onAnswer }: {
-  ex: Extract<Exercise, { kind: 'meaning' }>; mood: Mood; locked: boolean; onAnswer: (ok: boolean, detail?: string) => void;
+  ex: Extract<Exercise, { kind: 'meaning' }>; mood: Mood; locked: boolean; onAnswer: (v: Verdict) => void;
 }) {
   const [sel, setSel] = useState<string | null>(null);
   useEffect(() => { speak(ex.word[0]); }, [ex]);
@@ -301,7 +327,7 @@ function Meaning({ ex, mood, locked, onAnswer }: {
       </div>
       {!locked && (
         <Footer>
-          <button disabled={!sel} onClick={() => onAnswer(sel === ex.word[1], `${ex.word[0]} = ${ex.word[1]}`)}
+          <button disabled={!sel} onClick={() => onAnswer({ ok: sel === ex.word[1], detail: `${ex.word[0]} = ${ex.word[1]}`, echo: ex.word[0] })}
                   className="ml-auto rounded-xl bg-primary px-10 py-3 font-bold text-paper hover:bg-primary-hover disabled:bg-rule disabled:text-ink-muted">Comprobar</button>
         </Footer>
       )}
@@ -311,7 +337,7 @@ function Meaning({ ex, mood, locked, onAnswer }: {
 
 /** "Traduce esta oración": build the translation from word tiles. */
 function Tiles({ ex, mood, locked, onAnswer }: {
-  ex: Extract<Exercise, { kind: 'tiles' }>; mood: Mood; locked: boolean; onAnswer: (ok: boolean, detail?: string) => void;
+  ex: Extract<Exercise, { kind: 'tiles' }>; mood: Mood; locked: boolean; onAnswer: (v: Verdict) => void;
 }) {
   const [chosen, setChosen] = useState<number[]>([]);
   const fromEs = ex.from === 'es';
@@ -352,10 +378,23 @@ function Tiles({ ex, mood, locked, onAnswer }: {
       {!locked && (
         <Footer>
           <button disabled={!chosen.length}
-                  onClick={() => { const ok = sameSentence(chosen.map((k) => ex.tiles[k]), answer); speak(ex.sentence.es); onAnswer(ok, ok ? answer : `Correct answer: ${answer}`); }}
+                  onClick={() => {
+                    const given = chosen.map((k) => ex.tiles[k]);
+                    const ok = sameSentence(given, answer);
+                    onAnswer({ ok, detail: ok ? answer : `Correct answer: ${answer}`, echo: ex.sentence.es, slip: !ok && nearMiss(given, tokens(answer)) });
+                  }}
                   className="ml-auto rounded-xl bg-primary px-10 py-3 font-bold text-paper hover:bg-primary-hover disabled:bg-rule disabled:text-ink-muted">Comprobar</button>
         </Footer>
       )}
     </div>
   );
+}
+
+/** Right words in the wrong order, or exactly one word off: worth an "¡Uy, casi!" rather than a "¡Híjole!". */
+function nearMiss(given: string[], target: string[]): boolean {
+  const g = given.map((x) => x.toLowerCase());
+  const t = target.map((x) => x.toLowerCase());
+  if (g.length === t.length && [...g].sort().join() === [...t].sort().join()) return true;
+  if (g.length === t.length) return g.filter((x, i) => x !== t[i]).length === 1;
+  return Math.abs(g.length - t.length) === 1 && t.filter((x) => !g.includes(x)).length + g.filter((x) => !t.includes(x)).length <= 1;
 }

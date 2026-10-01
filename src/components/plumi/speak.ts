@@ -1,5 +1,7 @@
 'use client';
 
+import { savedVoice, type VoiceId } from './voices';
+
 /**
  * Plumi's voice.
  *
@@ -55,14 +57,30 @@ function browserSpeak(text: string, onEnd?: () => void) {
   }
 }
 
-let manifest: Promise<Record<string, string>> | undefined;
-function clips(): Promise<Record<string, string>> {
-  return (manifest ??= fetch('/voice/manifest.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+let voiceId: VoiceId | undefined;
+const manifests = new Map<VoiceId, Promise<Record<string, string>>>();
+
+/** The voice in use: the student's pick, remembered in this browser. */
+export function currentVoice(): VoiceId {
+  return (voiceId ??= savedVoice());
+}
+export function setVoice(id: VoiceId): void {
+  voiceId = id;
+}
+
+function clips(id: VoiceId = currentVoice()): Promise<Record<string, string>> {
+  let m = manifests.get(id);
+  if (!m) {
+    m = fetch(`/voice/${id}/manifest.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+    manifests.set(id, m);
+  }
+  return m;
 }
 
 async function clipUrl(text: string): Promise<string | null> {
-  const id = (await clips())[text];
-  return id ? `/voice/${id}.mp3` : null;
+  const id = currentVoice();
+  const clip = (await clips(id))[text];
+  return clip ? `/voice/${id}/${clip}.mp3` : null;
 }
 
 async function premiumUrl(text: string): Promise<string | null> {
@@ -98,9 +116,10 @@ export function speak(text: string, opts: { onEnd?: () => void } = {}): void {
 
 /** Warm the cache so the first tap plays instantly. */
 export function preload(texts: string[]): void {
-  void clips().then((m) => {
+  const id = currentVoice();
+  void clips(id).then((m) => {
     for (const t of texts) {
-      if (m[t]) { const a = new Audio(`/voice/${m[t]}.mp3`); a.preload = 'auto'; }
+      if (m[t]) { const a = new Audio(`/voice/${id}/${m[t]}.mp3`); a.preload = 'auto'; }
       else void premiumUrl(t);
     }
   });

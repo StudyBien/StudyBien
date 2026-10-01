@@ -4,4 +4,5 @@ export const PLUMI_LINES = [
   '¡Palabras nuevas! Toca cada imagen.',
   '¡Lección completa! ¡Bien hecho!',
   '¡Nivel completado! ¡Felicidades!',
+  '¡Hola! Soy Plumi. ¿Te gusta mi voz?',
 ];
