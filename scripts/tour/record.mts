@@ -24,7 +24,18 @@ const now = () => (Date.now() - t0) / 1000;
 const wait = (ms: number) => p.waitForTimeout(ms);
 async function caption(text: string, sub = '') {
   marks.push([now(), text]);
-  await p.evaluate(([t, s]) => (window as any).__caption?.(s ? `${t}<small>${s}</small>` : t), [text, sub]).catch(() => {});
+  const html = sub ? `${text}<small>${sub}</small>` : text;
+  // a navigation in flight can swallow the update, so settle and retry
+  for (let attempt = 0; attempt < 4; attempt++) {
+    await p.waitForLoadState('domcontentloaded').catch(() => {});
+    const ok = await p.evaluate((h) => { const w = window as unknown as { __caption?: (x: string) => void }; if (!w.__caption) return false; w.__caption(h); return true; }, html).catch(() => false);
+    if (ok) {
+      await wait(250);
+      const shown = await p.evaluate((h) => sessionStorage.getItem('__cap') === h, html).catch(() => false);
+      if (shown) return;
+    }
+    await wait(250);
+  }
 }
 async function click(target: Locator, opts: { pause?: number } = {}) {
   await target.waitFor({ timeout: 8000 }).catch(async () => { await p.screenshot({ path: '/var/tmp/tour/fail.png' }); });
@@ -32,101 +43,147 @@ async function click(target: Locator, opts: { pause?: number } = {}) {
   const box = await target.boundingBox();
   if (!box) { await p.screenshot({ path: '/var/tmp/tour/fail.png' }); throw new Error('no box for ' + target); }
   const x = box.x + box.width / 2, y = box.y + box.height / 2;
-  await p.mouse.move(x, y, { steps: 14 });
+  await p.mouse.move(x, y, { steps: 22 });
   await wait(120);
   await p.evaluate(([a, b]) => (window as any).__ripple?.(a, b), [x, y]);
   clicks.push(now());
   await p.mouse.click(x, y);
   await wait(opts.pause ?? 450);
 }
+/** Smooth scroll the page by dy pixels over ~ms, so the video glides instead of jumping. */
+async function glide(dy: number, ms = 1400) {
+  // plain-text script: the TS runner would otherwise inject helpers the page doesn't have
+  await p.evaluate(`new Promise((done) => {
+    const start = window.scrollY, t0 = performance.now(), d = ${dy}, t = ${ms};
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / t);
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      window.scrollTo(0, start + d * e);
+      if (k < 1) requestAnimationFrame(step); else done();
+    };
+    requestAnimationFrame(step);
+  })`);
+}
+async function toTop() { await p.evaluate(() => window.scrollTo({ top: 0 })); }
+async function menu(name: RegExp, pause = 900) {
+  await click(p.getByRole('button', { name: 'Menu' }), { pause: 650 });
+  await click(p.locator('#site-menu').getByRole('link', { name }), { pause });
+}
 async function type(target: Locator, text: string) {
   await click(target, { pause: 150 });
   await p.keyboard.type(text, { delay: 28 });
 }
 
-// ------------------------------------------------------------------ 1. home
+// ------------------------------------------------------------------ 1. home: what's offered
 await p.goto(B + '/');
-await wait(1100);                                 // ¡Bienvenidos! splash plays
+await wait(1000);                                         // ¡Bienvenidos! splash
 await caption('¡Bienvenidos a StudyBien!', 'Free Spanish for teachers and students');
 await wait(2200);
-await p.mouse.wheel(0, 420); await wait(900);
-await p.mouse.wheel(0, -420); await wait(500);
+await glide(560, 1300);                                   // past the hero and tour video
+await glide(620, 1500);
+await caption('A full Spanish library', 'Worksheets · quizzes · tests · readings · games');
+await wait(1600);
+await glide(560, 1500);
+await caption('For every level', 'Spanish 1–6, AP and College');
+await wait(1600);
+await glide(520, 1400);
+await caption('A classroom for teachers and students');
+await wait(1600);
+await toTop(); await wait(400);
 
-// ------------------------------------------------------------------ 2. menu → worksheets
-await caption('Everything lives in the ☰ Menu');
-await click(p.getByRole('button', { name: 'Menu' }), { pause: 1100 });
-await click(p.locator('#site-menu').getByRole('link', { name: /Worksheets/ }), { pause: 900 });
-await caption('Worksheets for every level', 'Spanish 1 to 6, AP and College');
-await click(p.getByRole('tab', { name: 'Spanish 2' }), { pause: 900 });
-await click(p.getByRole('link', { name: 'Answer key' }).first(), { pause: 1100 });
-await caption('Each worksheet has its answer key', 'Free with a teacher account');
+// ------------------------------------------------------------------ 2. the menu, one example per tab
+await caption('Open the ☰ Menu to explore');
+await menu(/Worksheets/);
+await caption('Worksheets', 'Printable, for every level');
+await click(p.getByRole('link', { name: /Vocabulario: Los colores/ }).first(), { pause: 900 });
+await glide(300, 900); await wait(400);
+await click(p.getByRole('tab', { name: 'Answer key' }), { pause: 900 });
+await caption('Every worksheet has its answer key', 'Free with a teacher account');
 await wait(1300);
 
-// ------------------------------------------------------------------ 3. quizzes + games
-await click(p.getByRole('button', { name: 'Menu' }), { pause: 700 });
-await click(p.locator('#site-menu').getByRole('link', { name: /Quizzes/ }), { pause: 800 });
-await caption('Quizzes, tests and readings', 'Auto-graded, with explanations');
+await menu(/Quizzes/);
+await caption('Quizzes', 'Graded instantly, with explanations');
 await click(p.getByRole('link', { name: /Vocabulario: Los colores/ }), { pause: 900 });
-await click(p.locator('fieldset').first().locator('label').first(), { pause: 500 });
-await click(p.locator('fieldset').nth(1).locator('label').nth(2), { pause: 700 });
-await click(p.getByRole('button', { name: 'Menu' }), { pause: 600 });
-await click(p.locator('#site-menu').getByRole('link', { name: /Games/ }), { pause: 700 });
-await caption('Games: hangman and word search');
-await click(p.getByRole('link', { name: /El ahorcado/ }), { pause: 800 });
-for (const l of ['A', 'R', 'O']) await click(p.getByRole('button', { name: l, exact: true }), { pause: 280 });
+for (let k = 0; k < 3; k++) await click(p.locator('fieldset').nth(k).locator('label').first(), { pause: 260 });
 await wait(500);
 
-// ------------------------------------------------------------------ 4. Learn with Plumi
-await click(p.getByRole('button', { name: 'Menu' }), { pause: 600 });
-await click(p.locator('#site-menu').getByRole('link', { name: /Learn with Plumi/ }), { pause: 900 });
-await caption('Learn with Plumi, our talking pen', 'Niveles from A1 to C2');
-await wait(1000);
-await click(p.getByRole('button', { name: /Escuchar/ }), { pause: 900 });
-await caption('Pick the voice you like', 'Mexico or Spain · female or male');
-await click(p.getByRole('option', { name: /Lucía/ }), { pause: 900 });
+await menu(/Tests/);
+await caption('Tests', 'Unit exams and finals with reading and writing');
+await click(p.locator('main a[href^="/resources/tests/"]').first(), { pause: 900 });
+await glide(900, 1600); await wait(600);
+
+await menu(/Reading Comprehension/);
+await caption('Reading Comprehension', 'Original stories, questions and writing');
+await click(p.locator('main a[href^="/resources/reading/"]').first(), { pause: 900 });
+await glide(420, 1300); await wait(700);
+
+await menu(/Games/);
+await caption('Games', 'Hangman and word search');
+await click(p.getByRole('link', { name: /Sopa de letras/ }), { pause: 1000 });
+await wait(700);
+await click(p.getByRole('link', { name: '← All games' }), { pause: 700 });
+await click(p.getByRole('link', { name: /El ahorcado/ }), { pause: 900 });
+for (const l of ['A', 'E', 'R']) await click(p.getByRole('button', { name: l, exact: true }), { pause: 300 });
+await wait(500);
+
+// ------------------------------------------------------------------ 3. Plumi
+await click(p.getByRole('link', { name: 'StudyBien' }).first(), { pause: 900 });
+await caption('Meet Plumi, our talking feather pen');
+await wait(1500);
+await click(p.getByRole('link', { name: /Learn with Plumi, our talking feather pen/ }), { pause: 1100 });
+await caption('Lessons from A1 to C2, one nivel at a time');
+await wait(1100);
+await click(p.getByRole('button', { name: /Escuchar/ }), { pause: 800 });
+await caption('Pick Plumi’s voice', 'Mexico or Spain · female or male');
+await click(p.getByRole('option', { name: /Sofía/ }), { pause: 1000 });
 await click(p.locator('a[href="/learn/a1-animales/0"]'), { pause: 1000 });
 await caption('Tap each picture to hear it');
-for (const c of await p.locator('.grid button').all()) await click(c, { pause: 380 });
+for (const c of await p.locator('.grid button').all()) await click(c, { pause: 420 });
 await click(p.getByRole('button', { name: 'Continuar' }), { pause: 800 });
-await caption('Then find the right one', 'Plumi cheers you on: ¡Órale! ¡Qué padre!');
+await caption('Then find the right one', 'Plumi cheers you on — ¡Órale! ¡Qué padre!');
 const txt = (await p.locator('main').textContent())!;
 const target = /«(.+?)»/.exec(txt)?.[1] ?? '';
 const cards = p.locator('.grid button');
-for (let k = 0; k < 4; k++) if ((await cards.nth(k).textContent())!.includes(target)) { await click(cards.nth(k), { pause: 400 }); break; }
-await click(p.getByRole('button', { name: 'Comprobar' }), { pause: 1500 });
-
-// finish-a-nivel moment: mark the lesson done and show the ink splash on the path
+for (let k = 0; k < 4; k++) if ((await cards.nth(k).textContent())!.includes(target)) { await click(cards.nth(k), { pause: 450 }); break; }
+await click(p.getByRole('button', { name: 'Comprobar' }), { pause: 1700 });
 await p.evaluate(() => {
-  const k = 'studybien.plumi.v1';
-  localStorage.setItem(k, JSON.stringify({ lessons: { 'a1-animales:0': 3 }, xp: 25, streak: 1, lastDay: new Date().toLocaleDateString('en-CA') }));
+  localStorage.setItem('studybien.plumi.v1', JSON.stringify({ lessons: { 'a1-animales:0': 3 }, xp: 25, streak: 1, lastDay: new Date().toLocaleDateString('en-CA') }));
   sessionStorage.setItem('studybien.plumi.burst', 'a1-animales:0');
 });
 await p.goto(B + '/learn');
 await caption('¡Nivel completado! 🎉', 'Finish a nivel and it splashes ink');
-await wait(2000);
+await wait(2300);
 
-// ------------------------------------------------------------------ 5. teacher
+// ------------------------------------------------------------------ 4. the classroom
+await click(p.getByRole('link', { name: 'StudyBien' }).first(), { pause: 900 });
 await caption('Teachers: create a free classroom');
-await click(p.getByRole('link', { name: 'Sign up / Sign in' }), { pause: 800 });
-await click(p.getByRole('tab', { name: 'Sign up' }), { pause: 500 });
+await click(p.getByRole('link', { name: /I’m a teacher: create a classroom/ }), { pause: 900 });
 await type(p.getByLabel('Your name'), 'Sra. García');
 await type(p.getByLabel('Email'), `profe${Date.now()}@example.com`);
 await type(p.getByLabel('Password'), 'unaclave1234');
-await click(p.getByRole('button', { name: 'Create account' }), { pause: 1300 });
+await click(p.getByRole('button', { name: 'Create account' }), { pause: 1200 });
 await type(p.getByLabel('Course name'), 'Español 2 · Período 3');
 await p.getByLabel('Level').selectOption('spanish-2');
-await click(p.getByRole('button', { name: '+ Create course' }), { pause: 1500 });
-await caption('Share the join code with your class', 'Plus announcements, assignments, grades and people');
+await click(p.getByRole('button', { name: '+ Create course' }), { pause: 1400 });
+await caption('Share the join code with your class');
 const code = (await p.locator('p.font-mono.text-4xl').textContent())!.trim();
-await wait(1600);
-await click(p.getByRole('link', { name: 'Assignments' }).first(), { pause: 1000 });
-await click(p.getByRole('link', { name: 'Calendar' }), { pause: 1200 });
+await wait(2400);
+await click(p.getByRole('link', { name: '+ New assignment' }), { pause: 1000 });
+await caption('Assign anything from the library');
+await p.getByRole('combobox', { name: 'From the library' }).selectOption({ index: 1 }); await wait(500);
+const due = new Date(Date.now() + 2 * 864e5); const pad = (n: number) => String(n).padStart(2, '0');
+await p.locator('input[type=datetime-local]').fill(`${due.getFullYear()}-${pad(due.getMonth() + 1)}-${pad(due.getDate())}T15:00`);
+await wait(400);
+await click(p.getByRole('button', { name: 'Assign to the whole course' }), { pause: 1300 });
+await caption('Announcements, grades, people and a calendar');
+for (const tab of ['Announcements', 'Grades', 'People']) await click(p.locator('nav').getByRole('link', { name: tab, exact: true }).first(), { pause: 750 });
+await click(p.getByRole('link', { name: 'Calendar' }), { pause: 1300 });
 
-// ------------------------------------------------------------------ 6. student
+// ------------------------------------------------------------------ 5. students
 await ctx.clearCookies();
 await p.goto(B + '/');
-await caption('Students: join with the code');
-await wait(600);
+await caption('Students: join with the code', 'No email needed');
+await wait(500);
 await click(p.getByRole('link', { name: 'Join classroom as a student' }), { pause: 700 });
 await type(p.getByLabel('Class code'), code);
 await click(p.getByRole('button', { name: 'Continue' }), { pause: 1000 });
@@ -134,14 +191,18 @@ await type(p.getByLabel('First name'), 'Lucía');
 await type(p.getByLabel('Last initial'), 'M');
 await type(p.getByLabel('Make a PIN'), '2468');
 await type(p.getByLabel('Type it again'), '2468');
-await click(p.getByRole('button', { name: 'Join the class' }), { pause: 1400 });
-await caption('Their own portal: assignments, grades and more');
-await wait(1600);
+await click(p.getByRole('button', { name: 'Join the class' }), { pause: 1300 });
+await caption('Their own portal: assignments and grades');
+await click(p.locator('nav').getByRole('link', { name: 'Assignments', exact: true }).first(), { pause: 1000 });
+await click(p.locator('ul a[href*="/assignments/"]').first(), { pause: 1300 });
+await caption('They do the work right here', 'Graded the moment they turn it in');
+for (let k = 0; k < 2; k++) await click(p.locator('fieldset').nth(k).locator('label').nth(1), { pause: 450 });
+await wait(1200);
 
 // ------------------------------------------------------------------ end card
 await p.goto(B + '/');
-await caption('StudyBien · ¡Vamos a aprender!', 'studybien — free for every teacher');
-await wait(2800);
+await caption('StudyBien · ¡Vamos a aprender!', 'Free for every teacher');
+await wait(3000);
 
 const total = now();
 await p.close(); await ctx.close(); await browser.close();

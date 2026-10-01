@@ -58,7 +58,7 @@ export default function Home() {
       <section className="mt-10" aria-labelledby="tour-title">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="tour-title" className="text-2xl font-bold tracking-tight">See how StudyBien works</h2>
-          <p className="font-mono text-xs uppercase tracking-[0.08em] text-ink-muted">60-second tour · sound on 🎸</p>
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-ink-muted">1½-minute tour · sound on 🎸</p>
         </div>
         <video className="mt-4 aspect-video w-full rounded-[var(--radius-lg)] border border-rule bg-paper-sunk shadow-sm"
                controls preload="metadata" playsInline poster="/media/studybien-tour.jpg">
