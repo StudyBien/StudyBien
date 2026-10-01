@@ -18,7 +18,8 @@ export default function Home() {
     <>
       <Bienvenidos />
 
-      <section className="rounded-[var(--radius-lg)] bg-primary-deep px-6 py-10 text-paper sm:px-10 sm:py-14">
+      <section className="relative grid items-center gap-6 overflow-hidden rounded-[var(--radius-lg)] bg-primary-deep px-6 py-10 text-paper sm:px-10 sm:py-14 lg:grid-cols-[1fr_300px]">
+        <div>
         <p className="font-mono text-xs uppercase tracking-[0.1em] text-paper/75">StudyBien</p>
         <h1 className="mt-2 text-[clamp(2.2rem,5.5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.02em]">
           ¡Bienvenidos!
@@ -37,6 +38,21 @@ export default function Home() {
             I’m a student: join with a code
           </Link>
         </div>
+        </div>
+
+        {/* Plumi, swaying in the empty corner, thinking about lessons */}
+        <Link href="/learn" aria-label="Learn with Plumi, our talking feather pen"
+              className="group mx-auto flex flex-col items-center text-paper no-underline hover:text-paper">
+          <span className="thought relative rounded-[28px] bg-paper px-5 py-3 text-center text-[15px] font-bold leading-snug text-primary-deep shadow-lg transition group-hover:-translate-y-1 group-hover:shadow-xl">
+            Learn with Plumi,<br />our talking feather pen
+            <span className="mt-1 block text-xs font-normal text-ink-muted group-hover:text-primary">Tap to start →</span>
+            <span aria-hidden className="absolute -bottom-3 left-[44%] h-4 w-4 rounded-full bg-paper shadow" />
+            <span aria-hidden className="absolute -bottom-7 left-[38%] h-2.5 w-2.5 rounded-full bg-paper shadow" />
+          </span>
+          <span className="plumi-sway mt-6 block">
+            <Plumi mood="happy" size={120} />
+          </span>
+        </Link>
       </section>
 
       <section className="mt-10" aria-labelledby="tour-title">
@@ -50,21 +66,6 @@ export default function Home() {
           <source src="/media/studybien-tour.webm" type="video/webm" />
           Your browser can’t play this video.
         </video>
-      </section>
-
-      <section className="mt-10 flex flex-col items-center gap-6 rounded-[var(--radius-lg)] border-2 border-primary-tint p-6 sm:flex-row sm:p-8" style={{ background: '#F5FBFF' }}>
-        <Plumi mood="happy" size={110} className="flex-none" />
-        <div className="flex-1">
-          <p className="font-mono text-xs uppercase tracking-[0.1em] text-primary">Nuevo</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight">Learn with Plumi, our talking feather pen</h2>
-          <p className="mt-2 text-ink-soft">
-            Picture lessons from A1 to C2. Tap a picture and Plumi says the word, then find it by sight and by sound,
-            and brings back what you missed. Earn stars, XP and a daily streak.
-          </p>
-          <Link href="/learn" className="mt-4 inline-block rounded-lg bg-primary px-5 py-3 font-bold text-paper no-underline hover:bg-primary-hover hover:text-paper">
-            Start learning →
-          </Link>
-        </div>
       </section>
 
       <section className="mt-12">

@@ -144,3 +144,8 @@
 .ink-drop { animation: ink-drop 900ms cubic-bezier(.15,.7,.3,1) both; }
 .ink-drip { transform: translateX(-50%); animation: ink-drip 1400ms 300ms ease-in both; }
 @media (prefers-reduced-motion: reduce) { .nivel-pulse, .nivel-pop { animation: none; } .ink-splat, .ink-drop, .ink-drip { display: none; } }
+
+/* Plumi pacing side to side on the home page */
+@keyframes plumi-sway { 0%,100% { transform: translateX(-14px) rotate(-3deg); } 50% { transform: translateX(14px) rotate(3deg); } }
+.plumi-sway { animation: plumi-sway 3.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .plumi-sway { animation: none; } }
