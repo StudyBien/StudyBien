@@ -16,12 +16,12 @@ import lameenc
 from piper import PiperVoice, SynthesisConfig
 
 # (folder, model, speaker, noise_scale, noise_w, bitrate kbps)
-# Lower noise settings give steadier, clearer delivery; Javier also gets a
-# higher bitrate because his deeper voice loses more at low bitrates.
+# Lower noise settings give steadier, clearer delivery; the male voices also get a
+# higher bitrate because their deeper voices lose more at low bitrates.
 VOICES = [
     ('mx-f', 'es_MX-claude-high', None, 0.667, 0.8, 40),
     ('es-f', 'es_ES-sharvard-medium', 1, 0.667, 0.8, 40),
-    ('mx-m', 'es_MX-ald-medium', None, 0.667, 0.8, 40),
+    ('mx-m', 'es_MX-ald-medium', None, 0.4, 0.5, 64),
     ('es-m', 'es_ES-sharvard-medium', 0, 0.4, 0.5, 64),
 ]
 
