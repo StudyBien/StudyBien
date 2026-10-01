@@ -8,7 +8,7 @@ import { StudyBienLogo } from '@/components/logo';
 export default function GoPage() {
   const [error, action, pending] = useActionState(enterCodeAction, null);
   return (
-    <div className="min-h-screen bg-paper-sunk/50">
+    <div className="min-h-screen bg-[#B8E2F2]">
       <header className="px-6 py-4"><Link href="/" className="text-ink no-underline"><StudyBienLogo height={26} /></Link></header>
       <main className="mx-auto max-w-md px-6 pb-16 pt-8">
         <div className="rounded-[var(--radius-lg)] border border-rule bg-paper p-8 text-center shadow-sm">

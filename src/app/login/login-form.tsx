@@ -13,7 +13,7 @@ export function LoginForm({ next, startInSignUp }: { next: string | null; startI
   const field = 'mt-1 w-full rounded-lg border border-rule px-3 py-2.5 focus:border-primary focus:outline-none';
 
   return (
-    <div className="min-h-screen bg-paper-sunk/50">
+    <div className="min-h-screen bg-[#B8E2F2]">
       <header className="px-6 py-4">
         <Link href="/" className="text-ink no-underline"><StudyBienLogo height={26} /></Link>
       </header>
