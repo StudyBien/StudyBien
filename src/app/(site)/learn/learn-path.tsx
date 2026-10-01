@@ -104,7 +104,7 @@ export function LearnPath({ levels }: { levels: L[] }) {
         </div>
       )}
       <p className="mt-12 text-center text-xs text-ink-muted">
-        Plumi’s voices are free, open-source <a href="https://github.com/rhasspy/piper">Piper</a> voices.
+        Plumi’s voices are made with free, open-source tools (<a href="https://github.com/rhasspy/piper">Piper</a>, <a href="https://github.com/myshell-ai/MeloTTS">MeloTTS</a> and <a href="https://github.com/myshell-ai/OpenVoice">OpenVoice</a>).
         Lucía’s and Javier’s voices were trained on the Sharvard corpus (University of Edinburgh, CC BY 3.0).
       </p>
     </div>

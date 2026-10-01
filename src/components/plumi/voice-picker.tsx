@@ -50,7 +50,7 @@ export function VoicePicker() {
               <span aria-hidden className="text-lg">{playing === v.id ? '🔊' : v.id === voice ? '✓' : '▶'}</span>
             </button>
           ))}
-          <p className="px-2 pt-2 text-[11px] text-ink-muted">Free open-source voices (Piper). Your choice is remembered on this device.</p>
+          <p className="px-2 pt-2 text-[11px] text-ink-muted">Free, open-source voices. Your choice is remembered on this device.</p>
         </div>
       )}
     </div>
