@@ -9,7 +9,7 @@ export const VOICES: VoiceOption[] = [
   { id: 'mx-f', name: 'Sofía', label: 'Mexican · female', flag: '🇲🇽', model: 'es_MX-claude-high' },
   { id: 'es-f', name: 'Lucía', label: 'Spain · female', flag: '🇪🇸', model: 'es_ES-sharvard-medium', speaker: 1 },
   { id: 'mx-m', name: 'Diego', label: 'Mexican · male', flag: '🇲🇽', model: 'es_MX-ald-medium' },
-  { id: 'es-m', name: 'Javier', label: 'Spain · male', flag: '🇪🇸', model: 'es_ES-davefx-medium' },
+  { id: 'es-m', name: 'Javier', label: 'Spain · male', flag: '🇪🇸', model: 'es_ES-sharvard-medium', speaker: 0 },
 ];
 
 export const DEFAULT_VOICE: VoiceId = 'mx-f';

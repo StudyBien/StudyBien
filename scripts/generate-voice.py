@@ -15,22 +15,25 @@ import hashlib, io, json, os, sys, wave
 import lameenc
 from piper import PiperVoice, SynthesisConfig
 
+# (folder, model, speaker, noise_scale, noise_w, bitrate kbps)
+# Lower noise settings give steadier, clearer delivery; Javier also gets a
+# higher bitrate because his deeper voice loses more at low bitrates.
 VOICES = [
-    ('mx-f', 'es_MX-claude-high', None),
-    ('es-f', 'es_ES-sharvard-medium', 1),
-    ('mx-m', 'es_MX-ald-medium', None),
-    ('es-m', 'es_ES-davefx-medium', None),
+    ('mx-f', 'es_MX-claude-high', None, 0.667, 0.8, 40),
+    ('es-f', 'es_ES-sharvard-medium', 1, 0.667, 0.8, 40),
+    ('mx-m', 'es_MX-ald-medium', None, 0.667, 0.8, 40),
+    ('es-m', 'es_ES-sharvard-medium', 0, 0.4, 0.5, 64),
 ]
 
 lines_file, models = sys.argv[1], sys.argv[2]
 lines = [l.strip() for l in open(lines_file, encoding='utf-8') if l.strip()]
 root = os.path.join(os.path.dirname(__file__), '..', 'public', 'voice')
 
-for vid, model, speaker in VOICES:
+for vid, model, speaker, ns, nw, kbps in VOICES:
     out_dir = os.path.join(root, vid)
     os.makedirs(out_dir, exist_ok=True)
     voice = PiperVoice.load(os.path.join(models, model + '.onnx'))
-    cfg = SynthesisConfig(speaker_id=speaker, length_scale=1.05) if speaker is not None else SynthesisConfig(length_scale=1.05)
+    cfg = SynthesisConfig(speaker_id=speaker, length_scale=1.05, noise_scale=ns, noise_w_scale=nw)
     manifest = {}
     for text in lines:
         clip = hashlib.sha1(text.encode('utf-8')).hexdigest()[:12]
@@ -42,7 +45,7 @@ for vid, model, speaker in VOICES:
             buf.seek(0)
             with wave.open(buf, 'rb') as w:
                 enc = lameenc.Encoder()
-                enc.set_bit_rate(40); enc.set_in_sample_rate(w.getframerate()); enc.set_channels(w.getnchannels()); enc.set_quality(2)
+                enc.set_bit_rate(kbps); enc.set_in_sample_rate(w.getframerate()); enc.set_channels(w.getnchannels()); enc.set_quality(2)
                 data = enc.encode(w.readframes(w.getnframes())) + enc.flush()
             open(dst, 'wb').write(data)
         manifest[text] = clip
