@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Plumi, PlumiSays, type Mood } from '@/components/plumi/plumi';
-import { speak } from '@/components/plumi/speak';
-import { recordLesson } from '@/components/plumi/progress';
+import { speak, preload } from '@/components/plumi/speak';
+import { recordLesson, markBurst } from '@/components/plumi/progress';
 import { buildExercises, type Exercise } from '@/lib/content/lessons';
+import { sameSentence } from '@/lib/content/sentences';
 
 type W = readonly [string, string, string];
 type Feedback = { ok: boolean; title: string; detail?: string } | null;
@@ -15,8 +16,8 @@ const PRAISE = ['¡Excelente!', '¡Muy bien!', '¡Perfecto!', '¡Fantástico!', 
 const COMFORT = ['¡Casi! Lo vemos otra vez.', 'No pasa nada. ¡Sigue!', 'Ánimo, la próxima sí.'];
 const pick = <T,>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
 
-export function LessonPlayer({ lessonKey, title, level, words, pool, nextHref }: {
-  lessonKey: string; title: string; level: string; words: readonly W[]; pool: readonly W[]; nextHref: string;
+export function LessonPlayer({ lessonKey, unitId, title, level, words, pool }: {
+  lessonKey: string; unitId: string; title: string; level: string; words: readonly W[]; pool: readonly W[];
 }) {
   const [queue, setQueue] = useState<Exercise[] | null>(null);
   const [i, setI] = useState(0);
@@ -27,8 +28,10 @@ export function LessonPlayer({ lessonKey, title, level, words, pool, nextHref }:
   const [finished, setFinished] = useState<{ stars: number; xp: number } | null>(null);
 
   const start = useCallback(() => {
-    setQueue(buildExercises(words, pool)); setI(0); setHearts(HEARTS); setMistakes(0); setFeedback(null); setFinished(null); setMood('happy');
-  }, [words, pool]);
+    const q = buildExercises(words, pool, Math.random, unitId);
+    preload([...words.map((w) => w[0]), ...q.flatMap((e) => (e.kind === 'tiles' ? [e.sentence.es] : []))]);
+    setQueue(q); setI(0); setHearts(HEARTS); setMistakes(0); setFeedback(null); setFinished(null); setMood('happy');
+  }, [words, pool, unitId]);
   useEffect(() => { start(); }, [start]);
 
   if (!queue) return null;
@@ -51,6 +54,7 @@ export function LessonPlayer({ lessonKey, title, level, words, pool, nextHref }:
       const stars = mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1;
       const xp = 10 + stars * 5;
       recordLesson(lessonKey, stars, xp);
+      markBurst(lessonKey);
       setFinished({ stars, xp });
       setMood('cheer');
       speak('¡Lección completa! ¡Bien hecho!');
@@ -79,7 +83,7 @@ export function LessonPlayer({ lessonKey, title, level, words, pool, nextHref }:
           <p className="mt-2 text-lg">+{finished.xp} XP · {mistakes === 0 ? '¡Sin errores!' : `${mistakes} error${mistakes === 1 ? '' : 'es'}`}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-3 text-4xl" aria-label="Words learned">{words.map((w) => <span key={w[0]} title={w[0]}>{w[2]}</span>)}</div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href={nextHref} className="rounded-xl bg-primary px-8 py-3 font-bold text-paper no-underline hover:bg-primary-hover hover:text-paper">Continuar</Link>
+            <Link href="/learn" className="rounded-xl bg-primary px-8 py-3 font-bold text-paper no-underline hover:bg-primary-hover hover:text-paper">Continuar</Link>
             <button onClick={start} className="rounded-xl border-2 border-rule px-6 py-3 font-bold hover:border-primary">Practicar otra vez</button>
           </div>
         </div>
@@ -93,6 +97,8 @@ export function LessonPlayer({ lessonKey, title, level, words, pool, nextHref }:
         {ex.kind === 'meet' && <Meet key={i} words={ex.words} onReady={next} />}
         {(ex.kind === 'find' || ex.kind === 'listen') && <PickPicture key={i} ex={ex} mood={mood} locked={!!feedback} onAnswer={answer} />}
         {ex.kind === 'name' && <NamePicture key={i} ex={ex} mood={mood} locked={!!feedback} onAnswer={answer} />}
+        {ex.kind === 'meaning' && <Meaning key={i} ex={ex} mood={mood} locked={!!feedback} onAnswer={answer} />}
+        {ex.kind === 'tiles' && <Tiles key={i} ex={ex} mood={mood} locked={!!feedback} onAnswer={answer} />}
       </div>
       {feedback && (
         <Footer tone={feedback.ok ? 'ok' : 'bad'}>
@@ -263,6 +269,91 @@ function NamePicture({ ex, mood, locked, onAnswer }: {
                   className="ml-auto rounded-xl bg-primary px-10 py-3 font-bold text-paper hover:bg-primary-hover disabled:bg-rule disabled:text-ink-muted">
             Comprobar
           </button>
+        </Footer>
+      )}
+    </div>
+  );
+}
+
+/** Spanish word (with its picture) → pick the English meaning. */
+function Meaning({ ex, mood, locked, onAnswer }: {
+  ex: Extract<Exercise, { kind: 'meaning' }>; mood: Mood; locked: boolean; onAnswer: (ok: boolean, detail?: string) => void;
+}) {
+  const [sel, setSel] = useState<string | null>(null);
+  useEffect(() => { speak(ex.word[0]); }, [ex]);
+  return (
+    <div>
+      <PlumiSays mood={locked ? mood : 'thinking'} size={100}>
+        <p className="font-bold">¿Qué significa?</p>
+        <p className="mt-1 flex items-center gap-2 text-2xl font-bold"><span aria-hidden>{ex.word[2]}</span> {ex.word[0]} <SpeakButton text={ex.word[0]} /></p>
+      </PlumiSays>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {ex.options.map((o, k) => {
+          const st = locked ? (o === ex.word[1] ? 'border-teal-deep bg-teal/15' : o === sel ? 'border-tangerine bg-tangerine-fill' : 'border-rule')
+            : sel === o ? 'border-primary bg-primary-tint' : 'border-rule hover:bg-paper-sunk/50';
+          return (
+            <button key={o} disabled={locked} onClick={() => setSel(o)}
+                    className={`rounded-xl border-2 border-b-4 px-4 py-3 text-left text-lg font-bold ${st}`}>
+              <span className="mr-2 rounded border border-rule px-1.5 text-sm text-ink-muted">{k + 1}</span>{o}
+            </button>
+          );
+        })}
+      </div>
+      {!locked && (
+        <Footer>
+          <button disabled={!sel} onClick={() => onAnswer(sel === ex.word[1], `${ex.word[0]} = ${ex.word[1]}`)}
+                  className="ml-auto rounded-xl bg-primary px-10 py-3 font-bold text-paper hover:bg-primary-hover disabled:bg-rule disabled:text-ink-muted">Comprobar</button>
+        </Footer>
+      )}
+    </div>
+  );
+}
+
+/** "Traduce esta oración": build the translation from word tiles. */
+function Tiles({ ex, mood, locked, onAnswer }: {
+  ex: Extract<Exercise, { kind: 'tiles' }>; mood: Mood; locked: boolean; onAnswer: (ok: boolean, detail?: string) => void;
+}) {
+  const [chosen, setChosen] = useState<number[]>([]);
+  const fromEs = ex.from === 'es';
+  const prompt = fromEs ? ex.sentence.es : ex.sentence.en;
+  const answer = fromEs ? ex.sentence.en : ex.sentence.es;
+  useEffect(() => { if (fromEs) speak(ex.sentence.es); }, [ex, fromEs]);
+  const tap = (k: number) => { setChosen([...chosen, k]); if (!fromEs) speak(ex.tiles[k]); };
+  return (
+    <div>
+      <h2 className="text-2xl font-bold">Traduce esta oración</h2>
+      <div className="mt-3">
+        <PlumiSays mood={locked ? mood : 'talking'} size={90}>
+          <p className="flex items-center gap-2 text-xl font-bold">
+            {fromEs && <SpeakButton text={ex.sentence.es} />}
+            <span className="decoration-primary/40 decoration-dotted underline-offset-4 [text-decoration-line:underline]">{prompt}</span>
+            <span aria-hidden className="text-2xl">{ex.word[2]}</span>
+          </p>
+        </PlumiSays>
+      </div>
+      {/* answer lines */}
+      <div className="mt-4 min-h-[112px] border-b-2 border-t-2 border-rule py-3"
+           style={{ backgroundImage: 'linear-gradient(transparent 51px, var(--color-rule) 52px)', backgroundSize: '100% 54px' }}>
+        <div className="flex flex-wrap gap-2">
+          {chosen.map((k, pos) => (
+            <button key={pos} disabled={locked} onClick={() => setChosen(chosen.filter((_, p) => p !== pos))}
+                    className="rounded-xl border-2 border-b-4 border-rule bg-paper px-3 py-1.5 text-lg font-bold">{ex.tiles[k]}</button>
+          ))}
+        </div>
+      </div>
+      <div className="mt-5 flex flex-wrap justify-center gap-2">
+        {ex.tiles.map((t, k) => (
+          <button key={k} disabled={locked || chosen.includes(k)} onClick={() => tap(k)}
+                  className={`rounded-xl border-2 border-b-4 px-3 py-1.5 text-lg font-bold ${chosen.includes(k) ? 'border-paper-sunk bg-paper-sunk text-transparent' : 'border-rule bg-paper hover:bg-paper-sunk/50'}`}>
+            {t}
+          </button>
+        ))}
+      </div>
+      {!locked && (
+        <Footer>
+          <button disabled={!chosen.length}
+                  onClick={() => { const ok = sameSentence(chosen.map((k) => ex.tiles[k]), answer); speak(ex.sentence.es); onAnswer(ok, ok ? answer : `Correct answer: ${answer}`); }}
+                  className="ml-auto rounded-xl bg-primary px-10 py-3 font-bold text-paper hover:bg-primary-hover disabled:bg-rule disabled:text-ink-muted">Comprobar</button>
         </Footer>
       )}
     </div>

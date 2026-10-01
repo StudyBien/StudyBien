@@ -11,6 +11,7 @@
  * the second lesson also reviews the first.
  */
 import { PIC_UNITS, CEFR_LEVELS, type Cefr, type PicUnit, type PicWord } from './picture-vocab.ts';
+import { sentenceFor, tokens, type Sentence } from './sentences.ts';
 
 export const PER_LESSON = 4;
 
@@ -40,7 +41,9 @@ export type Exercise =
   | { kind: 'meet'; words: PicWord[] }
   | { kind: 'find'; word: PicWord; options: PicWord[] }
   | { kind: 'listen'; word: PicWord; options: PicWord[] }
-  | { kind: 'name'; word: PicWord; options: PicWord[] };
+  | { kind: 'name'; word: PicWord; options: PicWord[] }
+  | { kind: 'meaning'; word: PicWord; options: string[] }                       // Spanish word → pick English
+  | { kind: 'tiles'; word: PicWord; from: 'es' | 'en'; sentence: Sentence; tiles: string[] };  // translate with word tiles
 
 function shuffle<T>(xs: readonly T[], rand: () => number): T[] {
   const a = [...xs];
@@ -54,10 +57,37 @@ function optionsFor(word: PicWord, pool: readonly PicWord[], rand: () => number)
   return shuffle([word, ...others], rand);
 }
 
-export function buildExercises(words: readonly PicWord[], pool: readonly PicWord[], rand: () => number = Math.random): Exercise[] {
+/**
+ * Tiles to translate a sentence: the answer's words plus a few decoys from the
+ * other sentences of the unit, so the right tiles aren't simply "all of them".
+ */
+function tilesFor(answer: string, others: string[], rand: () => number): string[] {
+  const need = tokens(answer);
+  const lower = new Set(need.map((t) => t.toLowerCase()));
+  const decoys = shuffle([...new Set(others.flatMap(tokens))].filter((t) => !lower.has(t.toLowerCase())), rand).slice(0, Math.max(2, Math.min(4, 8 - need.length)));
+  return shuffle([...need, ...decoys], rand);
+}
+
+export function buildExercises(words: readonly PicWord[], pool: readonly PicWord[], rand: () => number = Math.random, unitId = ''): Exercise[] {
   const out: Exercise[] = [{ kind: 'meet', words: [...words] }];
   for (const w of shuffle(words, rand)) out.push({ kind: 'find', word: w, options: optionsFor(w, words.length >= 4 ? words : pool, rand) });
   for (const w of shuffle(words, rand)) out.push({ kind: 'listen', word: w, options: optionsFor(w, pool, rand) });
   for (const w of shuffle(words, rand)) out.push({ kind: 'name', word: w, options: optionsFor(w, pool, rand) });
+
+  // writing: translate sentences with tiles where the unit has a pattern,
+  // otherwise pick the English meaning of each word
+  const sentences = pool.map((w) => sentenceFor(unitId, w)).filter((x): x is Sentence => !!x);
+  shuffle(words, rand).forEach((w, k) => {
+    const s = sentenceFor(unitId, w);
+    if (s) {
+      const from = k % 2 === 0 ? 'es' : 'en';
+      const answer = from === 'es' ? s.en : s.es;
+      const others = sentences.filter((x) => x.es !== s.es).map((x) => (from === 'es' ? x.en : x.es));
+      out.push({ kind: 'tiles', word: w, from, sentence: s, tiles: tilesFor(answer, others, rand) });
+    } else {
+      const wrong = shuffle(pool.filter((p) => p[1] !== w[1]), rand).slice(0, 3).map((p) => p[1]);
+      out.push({ kind: 'meaning', word: w, options: shuffle([w[1], ...wrong], rand) });
+    }
+  });
   return out;
 }

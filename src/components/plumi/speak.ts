@@ -1,38 +1,91 @@
 'use client';
 
 /**
- * Plumi's voice: the browser's own speech synthesis, preferring a Latin
- * American Spanish voice. Silent (never throws) where speech isn't available.
+ * Plumi's voice.
+ *
+ * First choice is the natural neural voice from /api/tts (when the site has a
+ * Google TTS key). Otherwise, the most natural Spanish voice this device has:
+ * Edge's "Natural" voices, Chrome's Google voices and Apple's enhanced voices
+ * sound far less robotic than the defaults, so they're preferred by name.
  */
-let cached: SpeechSynthesisVoice | null | undefined;
+let premium: boolean | undefined;           // unknown until the first request
+const audioCache = new Map<string, string>();
+let current: HTMLAudioElement | null = null;
 
-function voice(): SpeechSynthesisVoice | null {
+const PREFERRED = [/natural/i, /neural/i, /online/i, /premium/i, /enhanced/i, /google/i, /paulina|m[oó]nica|sabina|dalia|elvira|helena/i];
+const LOCALES = ['es-MX', 'es-US', 'es-419', 'es-ES', 'es'];
+
+function bestVoice(): SpeechSynthesisVoice | null {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
-  if (cached !== undefined && cached !== null) return cached;
-  const voices = window.speechSynthesis.getVoices();
+  const voices = window.speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith('es'));
   if (!voices.length) return null;
-  cached = voices.find((v) => v.lang === 'es-MX') ?? voices.find((v) => v.lang === 'es-US')
-    ?? voices.find((v) => v.lang.startsWith('es-4')) ?? voices.find((v) => v.lang.startsWith('es')) ?? null;
-  return cached;
+  const score = (v: SpeechSynthesisVoice) => {
+    const nameScore = PREFERRED.findIndex((re) => re.test(v.name));
+    const loc = LOCALES.findIndex((l) => v.lang.replace('_', '-').startsWith(l));
+    return (nameScore === -1 ? 100 : nameScore * 10) + (loc === -1 ? 9 : loc);
+  };
+  return [...voices].sort((a, b) => score(a) - score(b))[0];
+}
+
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  // voices load asynchronously in Chrome; touching the list starts that
+  window.speechSynthesis.getVoices();
 }
 
 export function canSpeak(): boolean {
-  return typeof window !== 'undefined' && 'speechSynthesis' in window;
+  return typeof window !== 'undefined' && ('speechSynthesis' in window || 'Audio' in window);
 }
 
-export function speak(text: string, opts: { slow?: boolean; onEnd?: () => void } = {}): void {
-  if (!canSpeak()) { opts.onEnd?.(); return; }
+function browserSpeak(text: string, onEnd?: () => void) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) { onEnd?.(); return; }
   try {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text.replace(/…/g, ''));
-    const v = voice();
+    const v = bestVoice();
     if (v) u.voice = v;
     u.lang = v?.lang ?? 'es-MX';
-    u.rate = opts.slow ? 0.6 : 0.9;
-    u.onend = () => opts.onEnd?.();
-    u.onerror = () => opts.onEnd?.();
+    u.rate = 0.92;
+    u.pitch = 1.08;      // a touch brighter: friendlier, less flat
+    u.onend = () => onEnd?.();
+    u.onerror = () => onEnd?.();
     window.speechSynthesis.speak(u);
   } catch {
-    opts.onEnd?.();
+    onEnd?.();
   }
+}
+
+async function premiumUrl(text: string): Promise<string | null> {
+  if (premium === false) return null;
+  const hit = audioCache.get(text);
+  if (hit) return hit;
+  try {
+    const res = await fetch(`/api/tts?t=${encodeURIComponent(text)}`);
+    if (res.status === 501) { premium = false; return null; }
+    if (!res.ok) return null;
+    premium = true;
+    const url = URL.createObjectURL(await res.blob());
+    audioCache.set(text, url);
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+export function speak(text: string, opts: { onEnd?: () => void } = {}): void {
+  if (typeof window === 'undefined') return;
+  current?.pause();
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  void premiumUrl(text).then((url) => {
+    if (!url) { browserSpeak(text, opts.onEnd); return; }
+    const a = new Audio(url);
+    current = a;
+    a.onended = () => opts.onEnd?.();
+    a.onerror = () => browserSpeak(text, opts.onEnd);
+    a.play().catch(() => browserSpeak(text, opts.onEnd));
+  });
+}
+
+/** Warm the cache so the first tap plays instantly. */
+export function preload(texts: string[]): void {
+  for (const t of texts) void premiumUrl(t);
 }

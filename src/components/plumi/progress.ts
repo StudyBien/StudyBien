@@ -35,3 +35,21 @@ export function recordLesson(lessonKey: string, stars: number, xp: number): Prog
   try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* storage blocked: progress lives for this page only */ }
   return p;
 }
+
+const BURST_KEY = 'studybien.plumi.burst';
+
+/** Mark a lesson as just finished, so the path can celebrate it once. */
+export function markBurst(lessonKey: string): void {
+  try { sessionStorage.setItem(BURST_KEY, lessonKey); } catch { /* ignore */ }
+}
+
+/** The lesson to celebrate, if any — read once, then cleared. */
+export function takeBurst(): string | null {
+  try {
+    const k = sessionStorage.getItem(BURST_KEY);
+    sessionStorage.removeItem(BURST_KEY);
+    return k;
+  } catch {
+    return null;
+  }
+}

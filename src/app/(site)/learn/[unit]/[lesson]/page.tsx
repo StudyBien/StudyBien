@@ -23,11 +23,11 @@ export default async function LessonPage({ params }: Props) {
   return (
     <LessonPlayer
       lessonKey={f.lesson.key}
+      unitId={f.unit.id}
       title={`${f.unit.name} · Lección ${f.lesson.index + 1}`}
       level={f.levelName}
       words={f.lesson.words.map((w) => [w[0], w[1], w[2]] as const)}
       pool={f.unit.words.map((w) => [w[0], w[1], w[2]] as const)}
-      nextHref={f.lesson.index + 1 < f.count ? `/learn/${f.unit.id}/${f.lesson.index + 1}` : '/learn'}
     />
   );
 }

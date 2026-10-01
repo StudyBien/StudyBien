@@ -131,3 +131,14 @@
 .plumi-sad .plumi-body { animation: plumi-shake 0.45s ease-in-out 1; }
 .plumi-mouth { transform-box: fill-box; transform-origin: center; animation: plumi-talk 0.22s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .plumi .plumi-body, .plumi-mouth { animation: none; } }
+
+/* Nivel bubbles on the learning path */
+@keyframes nivel-pulse { 0%,100% { box-shadow: 0 0 0 0 oklch(0.51 0.175 252 / 0.45); } 50% { box-shadow: 0 0 0 10px oklch(0.51 0.175 252 / 0); } }
+@keyframes nivel-pop { 0% { transform: scale(0.6); } 55% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes nivel-spark { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.4) rotate(160deg); opacity: 0; } }
+@keyframes nivel-ring { 0% { transform: scale(0.8); opacity: 0.9; } 100% { transform: scale(2.1); opacity: 0; } }
+.nivel-pulse { animation: nivel-pulse 1.8s ease-in-out infinite; }
+.nivel-pop { animation: nivel-pop 600ms cubic-bezier(.2,.9,.3,1.4) both; }
+.nivel-spark { animation: nivel-spark 900ms cubic-bezier(.15,.7,.3,1) both; }
+.nivel-ring { animation: nivel-ring 700ms ease-out both; }
+@media (prefers-reduced-motion: reduce) { .nivel-pulse, .nivel-pop, .nivel-spark, .nivel-ring { animation: none; } .nivel-spark, .nivel-ring { display: none; } }
