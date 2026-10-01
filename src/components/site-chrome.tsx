@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { StudyBienLogo } from './logo';
+import { MenuButton } from './public-sidebar';
 
 /**
  * Public chrome. Deliberately free of any session read: every page that wears
@@ -11,6 +12,7 @@ export function SiteNav() {
   return (
     <nav className="no-print sticky top-0 z-20 border-b border-rule bg-paper">
       <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
+        <MenuButton />
         <Link href="/" className="mr-auto text-ink no-underline">
           <StudyBienLogo height={26} />
         </Link>
