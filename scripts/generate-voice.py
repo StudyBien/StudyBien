@@ -21,9 +21,10 @@ from piper import PiperVoice, SynthesisConfig
 VOICES = [
     ('mx-f', 'es_MX-claude-high', None, 0.667, 0.8, 40),
     ('es-f', 'es_ES-sharvard-medium', 1, 0.667, 0.8, 40),
+    ('es-m', 'es_ES-sharvard-medium', 0, 0.4, 0.5, 64),
 ]
-# Diego (mx-m) and Javier (es-m) are cloned voices: record them with
-# scripts/voice-clone/run_all.py instead, so this never overwrites them.
+# Diego (mx-m) is a cloned voice: record him with scripts/voice-clone/run_all.py
+# instead, so this never overwrites him.
 
 lines_file, models = sys.argv[1], sys.argv[2]
 lines = [l.strip() for l in open(lines_file, encoding='utf-8') if l.strip()]

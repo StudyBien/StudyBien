@@ -9,10 +9,11 @@ service is called at runtime; these are static files served with the site.
 |---|---|---|---|
 | `mx-f` | Sofía (Mexico, female) | `es_MX-claude-high` | Apache License 2.0 |
 | `es-f` | Lucía (Spain, female) | `es_ES-sharvard-medium`, speaker F | CC BY 3.0 — trained on the Sharvard corpus, University of Edinburgh (https://datashare.ed.ac.uk/handle/10283/574) |
-| `mx-m` | Diego (Mexico, male) | `es_MX-ald-medium` | The Unlicense (public domain) |
+| `mx-m` | Diego (Mexico, male) | `es_MX-ald-medium` (Unlicense), converted to the voice of a friend of the site owner, used with his permission | voice used with consent; OpenVoice V2 converter, MIT |
 | `es-m` | Javier (Spain, male) | `es_ES-sharvard-medium`, speaker M | CC BY 3.0 — trained on the Sharvard corpus, University of Edinburgh (https://datashare.ed.ac.uk/handle/10283/574) |
 
 All four licences permit commercial use. CC BY 3.0 (Lucía and Javier) requires credit, given above
 and on the site's Learn page.
 
-Regenerate with `scripts/generate-voice.py`.
+Regenerate Sofía, Lucía and Javier with `scripts/generate-voice.py`; Diego with
+`scripts/voice-clone/` (see its README).
